@@ -51,6 +51,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "Core/ConfigManager.h"
+#include "Core/PowerPC/MMU.h"
 
 namespace WiimoteEmu
 {
@@ -205,8 +207,1216 @@ void Wiimote::Reset()
   m_imu_cursor_state = {};
 }
 
+void Wiimote::threadOutputs()
+{
+  const long max_time_lastPress = 100000;
+  DEBUG_LOG_FMT(ACHIEVEMENTS, "THREAD {} : Thread active", m_index);
+  while (true)
+  {
+    if (quitThread)
+      break;
+    std::string title = SConfig::GetInstance().GetGameID();
+
+    if (lastActiveGame != title)
+    {
+      lastActiveGame = title;
+      triggerIsActive = false;
+      triggerLastPress = 0;
+      triggerLastRelease = 0;
+      lastAmmo = INT32_MAX;
+      lastWeapon = 0;
+      lastCharged = 0;
+      lastOther1 = 0;
+      lastOther2 = 0;
+      fullAutoActive = false;
+      activeRecoil = false;
+    }
+
+    if (!activeRecoil && triggerLastPress > 0)
+      activeRecoil = true;
+
+    if (!activeRecoil)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      continue;
+    }
+
+
+    bool valid_query = false;
+    std::string output_signal = "";
+
+    // Not Compatible list :
+    // Dino Strike
+    // Cocoto Magic Circus
+    // Gunblade NY & L.A. Machineguns Arcade Hits Pack (USA) (En,Fr,Es)
+    // Martian Panic
+    // Nerf N Strike elite
+    // Pirate Blast
+    // Reload
+    // Remington Super Slam Hunting - Alaska (USA)
+    // Remington Super Slam Hunting - North America (USA)
+    // Sin & Punishment - Star Successor (USA)
+    // Sniper Elite
+
+    //Attack of the Movies 3-D (USA)
+    if (title == "S3AE5G")
+    {
+      int ammoCount = 0;
+      int weaponType = 0;
+      int max_player = 2;
+      /* std::chrono::microseconds::rep timestamp =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              std::chrono::steady_clock::now().time_since_epoch())
+              .count();
+      */
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_weaponType = PowerPC::MMU::HostTryReadU16(guard, 0x80eaa99e);
+          if (!blr_weaponType)
+            valid_query = false;
+          else
+            weaponType = blr_weaponType->value;
+
+          auto blr_ammo = PowerPC::MMU::HostTryReadU16(guard, 0x80eaa8ca + (weaponType * 0x3c));
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_weaponType = PowerPC::MMU::HostTryReadU16(guard, 0x809F0FFE);
+          if (!blr_weaponType)
+            valid_query = false;
+          else
+            weaponType = blr_weaponType->value;
+
+          auto blr_ammo = PowerPC::MMU::HostTryReadU16(guard, 0x809F0F2A + (weaponType * 0x3c));
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+
+      //Old Style
+     /*
+      if (valid_query)
+      {
+        if (fullAutoActive && (!triggerIsActive || ammoCount == 0))
+        {
+          output_signal = "machinegun_off";
+          fullAutoActive = false;
+        }
+        else
+        {
+          if (ammoCount < lastAmmo)
+          {
+            long long diff = timestamp - triggerLastPress;
+            DEBUG_LOG_FMT(ACHIEVEMENTS, "diff {}", diff);
+            if (diff < max_time_lastPress)
+            {
+              if (weaponType >1)
+              {
+                if (!fullAutoActive)
+                {
+                  fullAutoActive = true;
+                  output_signal = "machinegun_on";
+                }
+              }
+              else
+              {
+                if (weaponType == 1)
+                  output_signal = "tripleshot";
+                else
+                  output_signal = "gunshot";
+              }
+
+              triggerLastPress = 0;
+            }
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+      */
+    }
+
+    //Chicken Shoot (USA)
+    if (title == "RCSE20") 
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU16(guard, 0x8017fa8a);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU16(guard, 0x8017faa2);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Conduit 2 (USA)
+    //Note : Support for 1st player only  
+    if (title == "SC2E8P")
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x8087EEA0);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress - 0x15ED));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Dead Space - Extraction (USA)
+    if (title == "RZJE69")
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x804B8BF3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+    
+    //Deer Drive Legends (USA)
+    if (title == "SUNEYG")  
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadF32(guard, 0x903d53ac);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU16(guard, 0x903d576c);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Eco Shooter - Plant 530 (USA) (WiiWare)
+    if (title == "W6BE01")
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8028415B);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Fast Draw Showdown (USA) (WiiWare)
+    if (title == "WFAEJS")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x801C7A8B);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x801C7A8F);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Ghost Squad (USA)
+    //Note : 1st player only
+    if (title == "RGSE8P")
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x80507410);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x4b));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+      }
+
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Gunslingers (USA) (Rev 1)
+    if (title == "SW7EVN")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x80A6A853);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x80A6A7D3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Heavy Fire - Black Arms (USA) (WiiWare)
+    //Note : Don't support the gun at the start of the game with unlimited ammo
+    if (title == "WHYETY")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8054F7A7);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8054F7E3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+
+        if (valid_query)
+        {
+          if (ammoCount < lastAmmo)
+          {
+            if (triggerIsActive)
+            {
+              output_signal = "gunshot";
+              triggerLastPress = 0;
+            }
+          }
+          lastAmmo = ammoCount;
+        }
+      }
+    }
+
+    // Heavy Fire - Special Operations (USA) (WiiWare)
+    //  Note : Don't support the gun at the start of the game with unlimited ammo
+    if (title == "WHFETY")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8045AFC7);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8045B003);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+
+        if (valid_query)
+        {
+          if (ammoCount < lastAmmo)
+          {
+            if (triggerIsActive)
+            {
+              output_signal = "gunshot";
+              triggerLastPress = 0;
+            }
+          }
+          lastAmmo = ammoCount;
+        }
+      }
+    }
+
+    //Heavy Fire - Afghanistan (USA)
+    if (title == "SH4EFP")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8055BD43);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8055C00B);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+
+        if (valid_query)
+        {
+          if (ammoCount < lastAmmo)
+          {
+            if (triggerIsActive)
+            {
+              output_signal = "gunshot";
+              triggerLastPress = 0;
+            }
+          }
+          lastAmmo = ammoCount;
+        }
+      }
+    }
+
+    //Jurassic - The Hunted (USA)
+    if (title == "R8XE52")
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x807798E0);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x267));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+      }
+
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Link's Crossbow Training (USA) (Rev 1)
+    //Note : Does not detect when it go to fullauto (buff)
+    if (title == "RZPE01")
+    {
+      int gunStatus = 0;
+      int max_player = 1;
+      std::chrono::microseconds::rep timestamp =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              std::chrono::steady_clock::now().time_since_epoch())
+              .count();
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_gunStatus = PowerPC::MMU::HostTryReadU8(guard, 0x8036040D);
+          if (!blr_gunStatus)
+            valid_query = false;
+          else
+            gunStatus = blr_gunStatus->value;
+        }
+      }
+
+      if (valid_query && gunStatus > 1)
+      {
+        long long diffrlz = timestamp - triggerLastRelease;
+        long long diffpress = timestamp - triggerLastPress;
+        if (gunStatus == 9 && diffpress < max_time_lastPress)
+        {
+          output_signal = "gunshot";
+          triggerLastPress = 0;
+        }
+        else if (gunStatus != 9 && diffrlz < max_time_lastPress)
+        {
+          output_signal = "gunshot";
+          triggerLastRelease = 0;
+        }
+        lastOther1 = gunStatus;
+      }
+    }
+
+    // Mad Dog McCree - Gunslinger Pack (USA)
+    if (title == "RQ5E5G")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x803AE899);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x803AE89B);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Remington Great American Bird Hunt (USA)
+    //Note : Not perfect, use cooldown instead of ammo to track gunshot
+    if (title == "SBHEFP")
+    {
+      int cooldown = 0;
+      float reload = 0;
+      int max_player = 2;
+      std::chrono::microseconds::rep timestamp =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              std::chrono::steady_clock::now().time_since_epoch())
+              .count();
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_cooldown = PowerPC::MMU::HostTryReadU8(guard, 0x812B75DB);
+          if (!blr_cooldown)
+            valid_query = false;
+          else
+            cooldown = blr_cooldown->value;
+
+          auto blr_reload = PowerPC::MMU::HostTryReadF32(guard, 0x812B75E4);
+          if (!blr_reload)
+            valid_query = false;
+          else
+            reload = blr_reload->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_cooldown = PowerPC::MMU::HostTryReadU8(guard, 0x812B7C9B);
+          if (!blr_cooldown)
+            valid_query = false;
+          else
+            cooldown = blr_cooldown->value;
+
+          auto blr_reload = PowerPC::MMU::HostTryReadF32(guard, 0x812B7CA7);
+          if (!blr_reload)
+            valid_query = false;
+          else
+            reload = blr_reload->value;
+        }
+        // DEBUG_LOG_FMT(ACHIEVEMENTS, "valid= {} {} {}", (int)valid_query, weaponType, ammoCount);
+      }
+      if (valid_query)
+      {
+        if (cooldown == 0 && reload == 0)
+        {
+          long long diff = timestamp - triggerLastPress;
+          long long diff2 = timestamp - LastGunshotPress;
+          // DEBUG_LOG_FMT(ACHIEVEMENTS, "diff {}", diff);
+          if (diff < max_time_lastPress && diff2 > 300000)
+          {
+            LastGunshotPress = timestamp;
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+        }
+        else
+        {
+          LastGunshotPress = 0;
+        }
+      }
+    }
+
+    //Remington Super Slam Hunting - Africa (USA)
+    // Note : Not perfect, use cooldown instead of ammo to track gunshot
+    if (title == "SS7EFP")
+    {
+      int cooldown = 0;
+      int max_player = 2;
+      std::chrono::microseconds::rep timestamp =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              std::chrono::steady_clock::now().time_since_epoch())
+              .count();
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_cooldown = PowerPC::MMU::HostTryReadU8(guard, 0x802ECD41);
+          if (!blr_cooldown)
+            valid_query = false;
+          else
+            cooldown = blr_cooldown->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_cooldown = PowerPC::MMU::HostTryReadU8(guard, 0x802ECD6F);
+          if (!blr_cooldown)
+            valid_query = false;
+          else
+            cooldown = blr_cooldown->value;
+        }
+        // DEBUG_LOG_FMT(ACHIEVEMENTS, "valid= {} {} {}", (int)valid_query, weaponType, ammoCount);
+      }
+      if (valid_query)
+      {
+        if (cooldown == 0)
+        {
+          long long diff = timestamp - triggerLastPress;
+          long long diff2 = timestamp - LastGunshotPress;
+          // DEBUG_LOG_FMT(ACHIEVEMENTS, "diff {}", diff);
+          if (diff < max_time_lastPress && diff2 > 300000)
+          {
+            LastGunshotPress = timestamp;
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+        }
+        else
+        {
+          LastGunshotPress = 0;
+        }
+      }
+    }
+
+    //Resident Evil - The Darkside Chronicles (USA)
+    if (title == "SBDE08")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8106C7FF);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8106FFBF);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        // NOTICE_LOG_FMT(ACHIEVEMENTS, "valid= {} {}", m_index, ammoCount);
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Resident Evil - The Umbrella Chronicles (USA)
+    if (title == "RBUE08")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x804B779B);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x804B77BF);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Target - Terror (USA)
+    if (title == "RGDEA4")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8025A55F);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8025A55F);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //Conduit, The (USA)
+    if (title == "RCJE8P")
+    {
+      int ammoCount = 0;
+      int ammoCountCharge = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399BB);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399B7);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399B3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399AF);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399CB);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x90D399C3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCountCharge = blr_ammo->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo)
+        {
+          if (triggerIsActive)
+          {
+            output_signal = "gunshot";
+          }
+        }
+        else
+        {
+          if (ammoCountCharge < lastCharged)
+          {
+            std::chrono::microseconds::rep timestamp =
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch())
+                    .count();
+            long long diffrlz = timestamp - triggerLastRelease;
+            if (diffrlz < max_time_lastPress)
+            {
+              output_signal = "gunshot";
+              triggerLastRelease = 0;
+            }
+          }
+        }
+        lastCharged = ammoCountCharge;
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //House of the Dead 2 & 3 Return, The (USA)
+    if (title == "RHDE8P")  
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x804078ed);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          auto blr_ammo_hd3 = PowerPC::MMU::HostTryReadU8(guard, 0x8042f367);
+          if (!blr_ammo_hd3)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo_hd3->value;
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x80407c5d);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          auto blr_ammo_hd3 = PowerPC::MMU::HostTryReadU8(guard, 0x8042fa0b);
+          if (!blr_ammo_hd3)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo_hd3->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount < lastAmmo && triggerIsActive)
+        {
+          output_signal = "gunshot";
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    //House of the Dead, The - Overkill (USA)
+    //Note : need to use profile 1 on a specific save file
+    if (title == "RHOE8P") 
+    {
+      int ammoCount = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x814cbe90);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x25f));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+
+        if (m_index == 1)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x814cbe94);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x25f));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+          // NOTICE_LOG_FMT(ACHIEVEMENTS, "AMMO = {}", ammoCount);
+        }
+
+        
+        if (valid_query)
+        {
+          if (ammoCount < lastAmmo)
+          {
+            if (triggerIsActive)
+            {
+              output_signal = "gunshot";
+            }
+          }
+          lastAmmo = ammoCount;
+        }
+
+          /*
+        if (valid_query)
+        {
+          if (fullAutoActive && (!triggerIsActive || ammoCount == 0))
+          {
+            output_signal = "machinegun_off";
+            fullAutoActive = false;
+          }
+          else
+          {
+            if (ammoCount < lastAmmo)
+            {
+              long long diff = timestamp - triggerLastPress;
+
+              // NOTICE_LOG_FMT(ACHIEVEMENTS, "Diff =  {} -> {}", diff, (triggerLastPress -
+              // LastGunshotPress));
+
+              if (diff < max_time_lastPress)
+              {
+                output_signal = "gunshot";
+                LastGunshotPress = triggerLastPress;
+                triggerLastPress = 0;
+              }
+              else
+              {
+                diff = timestamp - LastGunshotPress;
+                NOTICE_LOG_FMT(ACHIEVEMENTS, "DIFFAUTO = {}", diff);
+                if (!fullAutoActive && (triggerLastPressNoReset - LastGunshotPress) == 0 &&
+                    LastGunshotPress > 0 && triggerIsActive && diff > 200000)
+                {
+                  fullAutoActive = true;
+                  output_signal = "machinegun_on";
+                }
+              }
+            }
+          }
+          lastAmmo = ammoCount;
+        }
+        */
+      }
+    }
+
+
+
+    if (output_signal != "")
+    {
+      NOTICE_LOG_FMT(ACHIEVEMENTS, "GUN {} : {}", m_index + 1, output_signal);
+    }
+
+
+
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  DEBUG_LOG_FMT(ACHIEVEMENTS, "THREAD {} : Thread fin", m_index);
+}
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
+  quitThread = false;
+  myThread = new std::thread(&Wiimote::threadOutputs, this);
+
+  DEBUG_LOG_FMT(ACHIEVEMENTS, "ICI Wiimote {} !!!!!!!!!!!!",index);
   using Translatability = ControllerEmu::Translatability;
 
   // Buttons
@@ -315,6 +1525,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
 
 Wiimote::~Wiimote()
 {
+  if (myThread != nullptr)
+  {
+    quitThread = true;
+    myThread->join();
+  }
   Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
 }
 
@@ -464,6 +1679,27 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
                    IsSideways() ? dpad_sideways_bitmasks : dpad_bitmasks,
                    m_input_override_function);
 
+  if (target_state->buttons.b)
+  {
+    if (!triggerIsActive)
+    {
+      triggerIsActive = true;
+      triggerLastPress = std::chrono::duration_cast<std::chrono::microseconds>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+      triggerLastPressNoReset = triggerLastPress;
+    }
+  }
+  else
+  {
+    if (triggerIsActive)
+    {
+      triggerIsActive = false;
+      triggerLastRelease = std::chrono::duration_cast<std::chrono::microseconds>(
+                               std::chrono::steady_clock::now().time_since_epoch())
+                               .count();
+    }
+  }
   // Calculate accelerometer state.
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   target_state->acceleration =

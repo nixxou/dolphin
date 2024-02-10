@@ -235,6 +235,76 @@ void IniFile::SortSections()
   sections.sort();
 }
 
+std::string IniFile::LoadInclude(const std::string& originalFilename,
+                                 const std::string& includeFilename, bool skipFirstLine)
+{
+  
+  // Check if the included filename is absolute
+  std::filesystem::path includePath(includeFilename);
+  if (!includePath.is_absolute())
+  {
+    // If it's relative, construct the full path based on the directory of the original file
+    std::filesystem::path originalPath(originalFilename);
+    std::filesystem::path directory = originalPath.parent_path();
+    includePath = directory / includeFilename;
+  }
+
+  // Convert the relative path to absolute path
+  std::filesystem::path fullPath = std::filesystem::absolute(includePath);
+  std::string fullPathString = fullPath.string();
+
+
+  std::string line_str ;
+  bool first_line;
+  first_line = true;
+  std::string iniContent = "";
+
+  std::ifstream in;
+  File::OpenFStream(in, fullPathString, std::ios::in);
+  if (in.fail())
+    return "";
+
+  while (std::getline(in, line_str))
+  {
+    if (first_line && line_str.substr(0, 3) == "\xEF\xBB\xBF")
+      line_str = line_str.substr(3);
+
+    if (first_line && skipFirstLine)
+    {
+      first_line = false;
+      continue;
+    }
+
+    first_line = false;
+
+    if (line_str.find("+include") == 0)
+    {
+      bool NewSkipFirstLine = false;
+      if (line_str.find("+include_without_first_line") == 0)
+        NewSkipFirstLine = true;
+      // Extract the included filename
+      std::string includedFilenameNew = line_str.substr(line_str.find_first_of("\"") + 1);
+      includedFilenameNew = includedFilenameNew.substr(0, includedFilenameNew.find_last_of("\""));
+
+      // Load the included file content
+      std::string includedContent =
+          LoadInclude(fullPathString, includedFilenameNew, NewSkipFirstLine);
+
+      // Append the included content to iniContent
+      iniContent += includedContent;
+    }
+    else
+    {
+      // If the line is not an include directive, simply append it
+      iniContent += line_str + "\n";
+    }
+  }
+  first_line = true;
+  in.close();
+
+  return iniContent;
+}
+
 bool IniFile::Load(const std::string& filename, bool keep_current_data)
 {
   if (!keep_current_data)
@@ -248,32 +318,46 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
   if (in.fail())
     return false;
 
-  Section* current_section = nullptr;
+  std::string iniContent;
+  std::string line_str;
   bool first_line = true;
-  while (!in.eof())
+
+  while (std::getline(in, line_str))
   {
-    std::string line_str;
-    if (!std::getline(in, line_str))
-    {
-      if (in.eof())
-        return true;
-      else
-        return false;
-    }
-
-    std::string_view line = line_str;
-
-    // Skips the UTF-8 BOM at the start of files. Notepad likes to add this.
-    if (first_line && line.substr(0, 3) == "\xEF\xBB\xBF")
-      line.remove_prefix(3);
+    if (first_line && line_str.substr(0, 3) == "\xEF\xBB\xBF")
+      line_str = line_str.substr(3);
     first_line = false;
 
-#ifndef _WIN32
-    // Check for CRLF eol and convert it to LF
-    if (!line.empty() && line.back() == '\r')
-      line.remove_suffix(1);
-#endif
+   if (line_str.find("+include") == 0)
+    {
+      bool skipFirstLine = false;
+      if (line_str.find("+include_without_first_line") == 0)
+        skipFirstLine = true;
+      // Extract the included filename
+      std::string includedFilename = line_str.substr(line_str.find_first_of("\"") + 1);
+      includedFilename = includedFilename.substr(0, includedFilename.find_last_of("\""));
 
+      // Load the included file content
+      std::string includedContent = LoadInclude(filename, includedFilename, skipFirstLine);
+
+      // Append the included content to iniContent
+      iniContent += includedContent;
+    }
+    else
+    {
+      // If the line is not an include directive, simply append it
+      iniContent += line_str + "\n";
+    }
+  }
+  first_line = true;
+  in.close();
+
+
+  Section* current_section = nullptr;
+  std::istringstream linesStream(iniContent);
+  while (std::getline(linesStream, line_str))
+  {
+    std::string_view line = line_str;
     if (!line.empty())
     {
       if (line[0] == '[')
@@ -306,12 +390,10 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
           {
             current_section->Set(key, value);
           }
-        }
+         }
       }
     }
   }
-
-  in.close();
   return true;
 }
 

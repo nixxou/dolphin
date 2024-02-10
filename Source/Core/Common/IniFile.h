@@ -152,6 +152,9 @@ public:
 
   void SortSections();
 
+  std::string LoadInclude(const std::string& originalFilename, const std::string& includeFilename,
+                          bool skipFirstLine);
+
   Section* GetOrCreateSection(std::string_view section_name);
   const Section* GetSection(std::string_view section_name) const;
   Section* GetSection(std::string_view section_name);

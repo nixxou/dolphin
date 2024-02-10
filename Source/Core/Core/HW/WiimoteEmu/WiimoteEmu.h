@@ -133,6 +133,25 @@ public:
   static constexpr const char* UPRIGHT_OPTION = "Upright Wiimote";
   static constexpr const char* SIDEWAYS_OPTION = "Sideways Wiimote";
 
+  void threadOutputs();
+  std::thread* myThread = nullptr;
+  bool quitThread = false;
+
+  std::string lastActiveGame = "";
+  bool triggerIsActive = false;
+  std::chrono::microseconds::rep triggerLastPress = 0;
+  std::chrono::microseconds::rep triggerLastRelease = 0;
+  std::chrono::microseconds::rep triggerLastPressNoReset = 0;
+  std::chrono::microseconds::rep LastGunshotPress = 0;
+
+  int lastAmmo = INT32_MAX;
+  int lastWeapon = 0;
+  int lastCharged = 0;
+  int lastOther1 = 0;
+  int lastOther2 = 0;
+  bool activeRecoil = false;
+  bool fullAutoActive = false;
+
   explicit Wiimote(unsigned int index);
   ~Wiimote();
 
