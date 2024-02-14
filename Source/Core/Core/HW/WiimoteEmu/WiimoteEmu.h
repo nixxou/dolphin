@@ -138,6 +138,7 @@ public:
   bool quitThread = false;
 
   std::string lastActiveGame = "";
+  int lastRatio = 0;
   bool triggerIsActive = false;
   std::chrono::microseconds::rep triggerLastPress = 0;
   std::chrono::microseconds::rep triggerLastRelease = 0;

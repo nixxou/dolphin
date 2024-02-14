@@ -53,6 +53,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/Config/SYSCONFSettings.h"
 
 namespace WiimoteEmu
 {
@@ -220,6 +221,7 @@ void Wiimote::threadOutputs()
     if (lastActiveGame != title)
     {
       lastActiveGame = title;
+      lastRatio = 0;
       triggerIsActive = false;
       triggerLastPress = 0;
       triggerLastRelease = 0;
@@ -230,6 +232,8 @@ void Wiimote::threadOutputs()
       lastOther2 = 0;
       fullAutoActive = false;
       activeRecoil = false;
+      lastRatio = 0;
+      if (title != "" && title != "00000000" && Config::Get(Config::SYSCONF_WIDESCREEN)) lastRatio = 1;
     }
 
     if (!activeRecoil && triggerLastPress > 0)
@@ -240,7 +244,6 @@ void Wiimote::threadOutputs()
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       continue;
     }
-
 
     bool valid_query = false;
     std::string output_signal = "";
@@ -1404,9 +1407,6 @@ void Wiimote::threadOutputs()
       NOTICE_LOG_FMT(ACHIEVEMENTS, "GUN {} : {}", m_index + 1, output_signal);
     }
 
-
-
-
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   DEBUG_LOG_FMT(ACHIEVEMENTS, "THREAD {} : Thread fin", m_index);
@@ -2053,7 +2053,8 @@ void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ,
+               lastActiveGame, lastRatio);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);

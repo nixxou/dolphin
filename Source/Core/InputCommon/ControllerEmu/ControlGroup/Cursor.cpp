@@ -61,6 +61,16 @@ Cursor::Cursor(std::string name_, std::string ui_name_)
 
   AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);
+  AddSetting(&m_autocorrectaim_setting, {_trans("Auto-Correct Aim")}, true);
+
+  AddSetting(&m_gun4ircom_setting,
+             // i18n: Refers to an amount of rotational movement about the "pitch" axis.
+             {_trans("Gun4Ir Com Port"),
+              // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+              _trans("COM"),
+              // i18n: Refers to emulated wii remote movements.
+              _trans("COM Port for recoil")},
+             0, 0, 20);
 }
 
 Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted) const
@@ -166,18 +176,26 @@ Cursor::StateData Cursor::UpdateState(Cursor::ReshapeData input)
   return result;
 }
 
-ControlState Cursor::GetTotalYaw() const
+ControlState Cursor::GetTotalYaw(double forcevalue) const
 {
+  if (forcevalue != -1)
+    return forcevalue*MathUtil::TAU / 360;
+
   return m_yaw_setting.GetValue() * MathUtil::TAU / 360;
 }
 
-ControlState Cursor::GetTotalPitch() const
+ControlState Cursor::GetTotalPitch(double forcevalue) const
 {
+  if (forcevalue != -1)
+    return forcevalue * MathUtil::TAU / 360;
   return m_pitch_setting.GetValue() * MathUtil::TAU / 360;
 }
 
-ControlState Cursor::GetVerticalOffset() const
+ControlState Cursor::GetVerticalOffset(double forcevalue) const
 {
+  if (forcevalue != -1)
+    return forcevalue / 100;
+
   return m_vertical_offset_setting.GetValue() / 100;
 }
 

@@ -32,13 +32,16 @@ public:
   StateData GetState(bool adjusted, const ControllerEmu::InputOverrideFunction& override_func);
 
   // Yaw movement in radians.
-  ControlState GetTotalYaw() const;
+  ControlState GetTotalYaw(double forcevalue) const;
 
   // Pitch movement in radians.
-  ControlState GetTotalPitch() const;
+  ControlState GetTotalPitch(double forcevalue) const;
 
   // Vertical offset in meters.
-  ControlState GetVerticalOffset() const;
+  ControlState GetVerticalOffset(double forcevalue) const;
+
+  SettingValue<bool> m_autocorrectaim_setting;
+  SettingValue<double> m_gun4ircom_setting;
 
 private:
   Cursor::StateData UpdateState(Cursor::ReshapeData input);

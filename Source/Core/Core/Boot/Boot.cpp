@@ -523,7 +523,6 @@ bool CBoot::BootUp(Core::System& system, const Core::CPUThreadGuard& guard,
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   system.GetVideoInterface().Preset(DiscIO::IsNTSC(config.m_region) ||
                                     (system.IsWii() && Config::Get(Config::SYSCONF_PAL60)));
-
   struct BootTitle
   {
     BootTitle(Core::System& system_, const Core::CPUThreadGuard& guard_,

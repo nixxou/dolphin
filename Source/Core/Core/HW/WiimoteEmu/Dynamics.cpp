@@ -18,6 +18,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 namespace
 {
 // Given a velocity, acceleration, and maximum jerk value,
@@ -223,9 +225,1637 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 }
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
-                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed)
+                  const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed,
+                  std::string lastActiveGame, int lastRatio)
 {
-  const auto cursor = ir_group->GetState(true, override_func);
+
+  const bool correctaim = ir_group->m_autocorrectaim_setting.GetValue();
+  auto cursor = ir_group->GetState(true, override_func);
+
+  float vertical_offset = ir_group->GetVerticalOffset(-1);
+  float yaw = ir_group->GetTotalYaw(-1);
+  float pitch = ir_group->GetTotalPitch(-1);
+
+
+  NOTICE_LOG_FMT(ACHIEVEMENTS, "cursor {} {} {} RATIO={}", cursor.x, cursor.y, lastActiveGame, lastRatio);
+
+  if (correctaim)
+  {
+    if (lastRatio == 0)
+    {
+      if (lastActiveGame == "S3AE5G")  // Attack of the Movies 3D
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(25);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+
+      if (lastActiveGame == "RCSE20" || lastActiveGame == "RCSP7J")  // Chicken Shoot
+      {
+        vertical_offset = ir_group->GetVerticalOffset(-0.2);
+        yaw = ir_group->GetTotalYaw(61.5);
+        pitch = ir_group->GetTotalPitch(32.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y > 0)
+          cursor.y = cursor.y - (0.09 * abs(xori) * abs(yori));
+        if (cursor.y < 0)
+          cursor.y = cursor.y + (0.09 * abs(xori) * abs(yori));
+      }
+
+      if (lastActiveGame == "RMRE5Z" || lastActiveGame == "RMRPNK" ||
+          lastActiveGame == "RMRXNK")  // Cocoto Magic Circu
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15.3);
+        yaw = ir_group->GetTotalYaw(25.2);
+        pitch = ir_group->GetTotalPitch(18.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.x > 0)
+          cursor.x += 0.01 * abs(xori);
+        if (cursor.x < 0)
+          cursor.x -= 0.01 * abs(xori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SC2E8P")  // Conduit 2
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.2);
+        pitch = ir_group->GetTotalPitch(20.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+
+        if (xori < 0)
+        {
+          if (cursor.y > 0)
+            cursor.y = cursor.y - ((0.15 * abs(xori) * abs(yori)));
+          if (cursor.y < 0)
+            cursor.y = cursor.y + ((0.15 * abs(xori) * abs(yori)));
+        }
+        if (xori > 0)
+        {
+          if (cursor.y > 0)
+            cursor.y = cursor.y - ((0.15 * abs(xori) * abs(yori)));
+          if (cursor.y < 0)
+            cursor.y = cursor.y + ((0.15 * abs(xori) * abs(yori)));
+        }
+      }
+      if (lastActiveGame == "RZJD69" || lastActiveGame == "RZJE69" || lastActiveGame == "RZJJ13" ||
+          lastActiveGame == "RZJP69")  // DeadSpace
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(23.9);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SUNEYG")  // DD Legends
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.0);
+        pitch = ir_group->GetTotalPitch(14.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SJUE20")  // Dino Strike
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.3);
+        pitch = ir_group->GetTotalPitch(18.9);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.08 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "W6BE01")  // Eco Shooter
+      {
+        vertical_offset = ir_group->GetVerticalOffset(0);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(20.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WFAEJS")  // Fast Draw Showdown
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(18.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RGSE8P" || lastActiveGame == "RGSJ8P" ||
+          lastActiveGame == "RGSP8P")  // Ghost Squad
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.6);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SQDE8P" ||
+          lastActiveGame == "SQDP8P")  // Gunblade NY & LA Machineguns: Arcade Hits Pack
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.3);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SW7EVN")  // Gunslingers
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(15.8);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WHYETY")  // Heavy Fire - Black Arms
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(29.5);
+        pitch = ir_group->GetTotalPitch(22);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WHFETY")  // Heavy Fire - Special Operations
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(29.5);
+        pitch = ir_group->GetTotalPitch(22);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.06 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.06 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SH4EFP")  // Heavy Fire - Afghanistan (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "R8XE52")  // Jurassic - The Hunted (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.8);
+        pitch = ir_group->GetTotalPitch(19);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RZPE01")  // Link's Crossbow Training
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(18);
+        pitch = ir_group->GetTotalPitch(10);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RQ5E5G" || lastActiveGame == "RQ5P5G" ||
+          lastActiveGame == "RQ5X5G")  // Mad Dog McCree - Gunslinger Pack
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RQ7E20")  // Martian Panic
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25);
+        pitch = ir_group->GetTotalPitch(19);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RL6E69")  // Nerf N Strike
+      {
+        vertical_offset = ir_group->GetVerticalOffset(21.5);
+        yaw = ir_group->GetTotalYaw(16);
+        pitch = ir_group->GetTotalPitch(12.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SKXE20" || lastActiveGame == "SKXPFH")  // Pirate Blast
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y > 0)
+          cursor.y += 0.01 * abs(yori);
+        if (cursor.y < 0)
+          cursor.y -= 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "STDEFP")  // Reload
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26);
+        pitch = ir_group->GetTotalPitch(18.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SBHEFP")  // Remington Great American Bird Hunt (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.3);
+        pitch = ir_group->GetTotalPitch(18.8);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SS7EFP")  // Remington Super Slam Hunting - Africa (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y < 0)
+          cursor.y += 0.04 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SRKEFP")  // Remington Super Slam Hunting - Alaska (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.3);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y > 0)
+          cursor.y += 0.05 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SBSEFP")  // Remington Super Slam Hunting - North America (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.3);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SBDE08" || lastActiveGame == "SBDJ08" || lastActiveGame == "SBDK08" ||
+          lastActiveGame == "SBDP08")  // RESIDENT EVIL THE DARKSIDE CHRONICLES
+      {
+        vertical_offset = ir_group->GetVerticalOffset(0);
+        yaw = ir_group->GetTotalYaw(21);
+        pitch = ir_group->GetTotalPitch(15.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x > 0)
+          cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+        if (cursor.x < 0)
+          cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+      }
+      if (lastActiveGame == "RBUE08")  // Resident Evil - The Umbrella Chronicles (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(17.3);
+        pitch = ir_group->GetTotalPitch(11.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.x < 0)
+          cursor.x += 0.02 * abs(xori);
+        if (cursor.x > 0)
+          cursor.x -= 0.02 * abs(xori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "R2VE01" || lastActiveGame == "R2VP01" ||
+          lastActiveGame == "R2VJ01")  // Sin & Punishment - Star Successor (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25);
+        pitch = ir_group->GetTotalPitch(19.2);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.06 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.06 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SSNEYG")  // Sniper Elite
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(24);
+        pitch = ir_group->GetTotalPitch(13.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.03 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RGDEA4")  // Target: Terror
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.7);
+        pitch = ir_group->GetTotalPitch(19.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x < 0)
+          cursor.x += 0.02 * abs(xori);
+        if (cursor.x > 0)
+          cursor.x -= 0.02 * abs(xori);
+        if (cursor.y < 0)
+          cursor.y += 0.02 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y -= 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RCJE8P" || lastActiveGame == "RCJP8P")  // The Conduit
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(18.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y < 0)
+          cursor.y -= 0.005 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y += 0.005 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RHDE8P" || lastActiveGame == "RHDJ8P" ||
+          lastActiveGame == "RHDP8P")  // The House of the Dead 2 & 3 Return
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.7);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y < 0)
+          cursor.y -= 0.005 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y += 0.005 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RHOE8P" || lastActiveGame == "RHOJ8P" ||
+          lastActiveGame == "RHOP8P")  // House Of The Dead: OVERKILL
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x < 0)
+          cursor.x += 0.01 * abs(xori);
+        if (cursor.x > 0)
+          cursor.x -= 0.01 * abs(xori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "ST9E52")  // Top Shot Arcade (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(24.7);
+        pitch = ir_group->GetTotalPitch(19.0);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "R8XZ52")  // Top Shot Dino
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SW9EVN")  // Wicked Monster Blast
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(24.3);
+        pitch = ir_group->GetTotalPitch(23.7);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WB4EGL")  // Wild West Guns
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.7);
+        pitch = ir_group->GetTotalPitch(19.0);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SSRE20" || lastActiveGame == "SSRPXT")  // Wild West Shootout
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.3);
+        pitch = ir_group->GetTotalPitch(19.0);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WZPERZ")  // Zombie Panic
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.7);
+        pitch = ir_group->GetTotalPitch(24.3);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+
+    }
+    if (lastRatio == 1)
+    {
+
+      if (lastActiveGame == "S3AE5G")  // Attack of the Movies 3D
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19);
+        pitch = ir_group->GetTotalPitch(19.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        
+        if (cursor.y < 0)
+          cursor.y += 0.02 * abs(yori);
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.01 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.01 * abs(yori) * abs(xori));
+        }
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+
+      if (lastActiveGame == "RCSE20" || lastActiveGame == "RCSP7J")  // Chicken Shoot
+      {
+        vertical_offset = ir_group->GetVerticalOffset(-0.2);
+        yaw = ir_group->GetTotalYaw(61.5);
+        pitch = ir_group->GetTotalPitch(32.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y > 0)
+          cursor.y = cursor.y - (0.09 * abs(xori) * abs(yori));
+        if (cursor.y < 0)
+          cursor.y = cursor.y + (0.09 * abs(xori) * abs(yori));
+      }
+
+      if (lastActiveGame == "RMRE5Z" || lastActiveGame == "RMRPNK" ||
+          lastActiveGame == "RMRXNK")  // Cocoto Magic Circu
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15.3);
+        yaw = ir_group->GetTotalYaw(25.2);
+        pitch = ir_group->GetTotalPitch(18.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.x > 0)
+          cursor.x += 0.01 * abs(xori);
+        if (cursor.x < 0)
+          cursor.x -= 0.01 * abs(xori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SC2E8P")  // Conduit 2
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19.2);
+        pitch = ir_group->GetTotalPitch(21);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y += 0.01 * abs(yori);
+
+
+        if (xori > 0)
+          cursor.x *= (1 + (0.05 * (1 - abs(xori))));
+
+        if (xori < 0)
+          cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+
+        if (xori < 0 && yori > 0) //coté haut gauche
+        {
+          cursor.x = cursor.x + (0.025 * abs(yori) * abs(xori));
+          cursor.y = cursor.y - ((0.1 * abs(xori) * abs(yori)));
+        }
+        if (xori > 0 && yori > 0)  // coté haut droit
+        {
+          cursor.x = cursor.x - (0.025 * abs(yori) * abs(xori));
+          cursor.y = cursor.y - ((0.1 * abs(xori) * abs(yori)));
+        }
+        if (xori < 0 && yori < 0)  // coté haut gauche
+        {
+          cursor.x = cursor.x + (0.065 * abs(yori) * abs(xori));
+          cursor.y = cursor.y + ((0.1 * abs(xori) * abs(yori)));
+        }
+        if (xori > 0 && yori < 0)  // coté haut droit
+        {
+          cursor.x = cursor.x - (0.065 * abs(yori) * abs(xori));
+          cursor.y = cursor.y + ((0.1 * abs(xori) * abs(yori)));
+        }
+
+      }
+      if (lastActiveGame == "RZJD69" || lastActiveGame == "RZJE69" || lastActiveGame == "RZJJ13" ||
+          lastActiveGame == "RZJP69")  // DeadSpace
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(18.3);
+        pitch = ir_group->GetTotalPitch(19.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= (1 + (0.02 * (1 - abs(xori))));
+        
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.055 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.055 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SUNEYG")  // DD Legends
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(14.0);
+        pitch = ir_group->GetTotalPitch(11.0);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        cursor.y *= (1 + (0.02 * (1 - abs(yori))));
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SJUE20")  // Dino Strike
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(15.0);
+        yaw = ir_group->GetTotalYaw(14.3);
+        pitch = ir_group->GetTotalPitch(19.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        if (cursor.y < 0) cursor.y *= (1 + (0.02 * (1 - abs(yori))));
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.06 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.06 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "W6BE01")  // Eco Shooter
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(0);
+        yaw = ir_group->GetTotalYaw(20.5);
+        pitch = ir_group->GetTotalPitch(21.2);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.03 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.03 * abs(yori) * abs(xori));
+        }
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.03 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.03 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "WFAEJS")  // Fast Draw Showdown
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(18.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "RGSE8P" || lastActiveGame == "RGSJ8P" ||
+          lastActiveGame == "RGSP8P")  // Ghost Squad
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.6);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SQDE8P" ||
+          lastActiveGame == "SQDP8P")  // Gunblade NY & LA Machineguns: Arcade Hits Pack
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(15.2);
+        yaw = ir_group->GetTotalYaw(15.3);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+
+        if (cursor.y < 0)
+          cursor.y *= (1 + (0.02 * (1 - abs(yori))));
+        if (cursor.y > 0)
+          cursor.y *= (1 + (0.03 * (abs(yori))));
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.06 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.06 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SW7EVN")  // Gunslingers
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(14.25);
+        pitch = ir_group->GetTotalPitch(12.0);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.03 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.03 * abs(yori) * abs(xori));
+        }
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x + (0.01 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x - (0.01 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WHYETY")  // Heavy Fire - Black Arms
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15.0);
+        yaw = ir_group->GetTotalYaw(16.5);
+        pitch = ir_group->GetTotalPitch(22.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+
+        if (cursor.y < 0)
+          cursor.y += 0.008 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.07 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.07 * abs(yori) * abs(xori));
+        }
+
+      }
+      if (lastActiveGame == "WHFETY")  // Heavy Fire - Special Operations
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(16.5);
+        pitch = ir_group->GetTotalPitch(23);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        if (cursor.y < 0)
+          cursor.y += 0.015 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.078 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.073 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SH4EFP")  // Heavy Fire - Afghanistan (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15.0);
+        yaw = ir_group->GetTotalYaw(14.0);
+        pitch = ir_group->GetTotalPitch(19.2);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        if (cursor.y > 0)
+          cursor.y += 0.012 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+
+      }
+      if (lastActiveGame == "R8XE52")  // Jurassic - The Hunted (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(14.5);
+        pitch = ir_group->GetTotalPitch(19);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RZPE01")  // Link's Crossbow Training
+      {
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        xori = cursor.x;
+
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(10.15);
+        pitch = ir_group->GetTotalPitch(8);
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.y = cursor.y - (0.025 * abs(xori) * abs(yori));
+          if (cursor.x < 0)
+            cursor.y = cursor.y - (0.025 * abs(xori) * abs(yori));
+        }
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "RQ5E5G" || lastActiveGame == "RQ5P5G" ||
+          lastActiveGame == "RQ5X5G")  // Mad Dog McCree - Gunslinger Pack
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RQ7E20")  // Martian Panic
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(14.3);
+        pitch = ir_group->GetTotalPitch(19.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        xori = cursor.x;
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.01 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.01 * abs(yori) * abs(xori));
+        }
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RL6E69")  // Nerf N Strike
+      {
+        vertical_offset = ir_group->GetVerticalOffset(21.5);
+        yaw = ir_group->GetTotalYaw(9.3);
+        pitch = ir_group->GetTotalPitch(13.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        xori = cursor.x;
+ 
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SKXE20" || lastActiveGame == "SKXPFH")  // Pirate Blast
+      {
+
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(27.5);
+        pitch = ir_group->GetTotalPitch(18.5);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y > 0)
+          cursor.y += 0.01 * abs(yori);
+        if (cursor.y < 0)
+          cursor.y -= 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "STDEFP")  // Reload
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15.0);
+        yaw = ir_group->GetTotalYaw(14.5);
+        pitch = ir_group->GetTotalPitch(18.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.03 * (1 - abs(xori))));
+        xori = cursor.x;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SBHEFP")  // Remington Great American Bird Hunt (USA)
+      {
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= 1.33;
+        cursor.x *= (1 + (0.033 * (1 - abs(xori))));
+        cursor.x += 0.018;
+        xori = cursor.x;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.030 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.030 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SS7EFP")  // Remington Super Slam Hunting - Africa (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(18.7);
+        
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x += 0.24;
+       
+        if (cursor.y>0) cursor.y += 0.04 * abs(yori);
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SRKEFP")  // Remington Super Slam Hunting - Alaska (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(19.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x += 0.25;
+
+        if (cursor.y < 0)
+          cursor.y += 0.045 * abs(yori);
+
+        if (cursor.x > 0)
+          cursor.x -= 0.016 * abs(xori);
+        if (cursor.x < 0)
+          cursor.x -= 0.016 * abs(xori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SBSEFP")  // Remington Super Slam Hunting - North America (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(18.7);
+        pitch = ir_group->GetTotalPitch(18.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x += 0.02;
+        
+        if (cursor.y > 0)
+          cursor.y += 0.02 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SBDE08" || lastActiveGame == "SBDJ08" || lastActiveGame == "SBDK08" ||
+          lastActiveGame == "SBDP08")  // RESIDENT EVIL THE DARKSIDE CHRONICLES
+      {
+        vertical_offset = ir_group->GetVerticalOffset(0);
+        yaw = ir_group->GetTotalYaw(21);
+        pitch = ir_group->GetTotalPitch(15.8);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x > 0)
+          cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+        if (cursor.x < 0)
+          cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+      }
+      if (lastActiveGame == "RBUE08")  // Resident Evil - The Umbrella Chronicles (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(17.3);
+        pitch = ir_group->GetTotalPitch(11.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.x < 0)
+          cursor.x += 0.028 * abs(xori);
+        if (cursor.x > 0)
+          cursor.x -= 0.028 * abs(xori);
+
+        if (yori > 0)
+        {
+          cursor.y -= 0.025 * abs(xori);
+        }
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "R2VE01" || lastActiveGame == "R2VP01" ||
+          lastActiveGame == "R2VJ01")  // Sin & Punishment - Star Successor (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(18.7);
+        pitch = ir_group->GetTotalPitch(19.2);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.06 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.06 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SSNEYG")  // Sniper Elite
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19);
+        pitch = ir_group->GetTotalPitch(14);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.045 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.045 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RGDEA4")  // Target: Terror
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.7);
+        pitch = ir_group->GetTotalPitch(19.7);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x < 0)
+          cursor.x += 0.02 * abs(xori);
+        if (cursor.x > 0)
+          cursor.x -= 0.02 * abs(xori);
+        if (cursor.y < 0)
+          cursor.y += 0.02 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y -= 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RCJE8P" || lastActiveGame == "RCJP8P")  // The Conduit
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(18.8);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.x < 0)
+          cursor.x += 0.006 * abs(xori);
+        if (cursor.y > 0)
+          cursor.y += 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+        
+      }//a cootinuer
+      if (lastActiveGame == "RHDE8P" || lastActiveGame == "RHDJ8P" ||
+          lastActiveGame == "RHDP8P")  // The House of the Dead 2 & 3 Return
+      {
+        vertical_offset = ir_group->GetVerticalOffset(14.9);
+        yaw = ir_group->GetTotalYaw(26.7);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        if (cursor.y < 0)
+          cursor.y -= 0.005 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y += 0.005 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RHOE8P" || lastActiveGame == "RHOJ8P" ||
+          lastActiveGame == "RHOP8P")  // House Of The Dead: OVERKILL
+      {
+
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19.35);
+        pitch = ir_group->GetTotalPitch(19);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        cursor.x *= (1 + (0.01 * (1 - abs(xori))));
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.01 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.01 * abs(yori) * abs(xori));
+        }
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "ST9E52")  // Top Shot Arcade (USA)
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(24.9);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "R8XZ52")  // Top Shot Dino
+      {
+        
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19.5);
+        pitch = ir_group->GetTotalPitch(19.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y += 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+        
+      }
+      if (lastActiveGame == "SW9EVN")  // Wicked Monster Blast
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(18.3);
+        pitch = ir_group->GetTotalPitch(18.7);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y += 0.025 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WB4EGL")  // Wild West Guns
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(18.95);
+        pitch = ir_group->GetTotalPitch(19.5);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y += 0.01 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "SSRE20" || lastActiveGame == "SSRPXT")  // Wild West Shootout
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19.25);
+        pitch = ir_group->GetTotalPitch(19);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "WZPERZ")  // Zombie Panic
+      {
+        vertical_offset = ir_group->GetVerticalOffset(15);
+        yaw = ir_group->GetTotalYaw(19);
+        pitch = ir_group->GetTotalPitch(19.8);
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y += 0.015 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.05 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
+        }
+      }
+    }
+  }
 
   if (!cursor.IsVisible())
   {
@@ -242,10 +1872,10 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   // This is kinda odd but it does seem to maintain consistent cursor behavior.
   const bool sensor_bar_on_top = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION) != 0;
 
-  const float height = ir_group->GetVerticalOffset() * (sensor_bar_on_top ? 1 : -1);
+  const float height = vertical_offset * (sensor_bar_on_top ? 1 : -1);
 
-  const float yaw_scale = ir_group->GetTotalYaw() / 2;
-  const float pitch_scale = ir_group->GetTotalPitch() / 2;
+  const float yaw_scale = yaw / 2;
+  const float pitch_scale = pitch / 2;
 
   // Just jump to the target position.
   state->position = {0, NEUTRAL_DISTANCE, -height};
