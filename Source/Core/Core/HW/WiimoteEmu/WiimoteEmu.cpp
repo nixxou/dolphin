@@ -55,6 +55,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/Config/SYSCONFSettings.h"
 
+
 namespace WiimoteEmu
 {
 using namespace WiimoteCommon;
@@ -220,6 +221,13 @@ void Wiimote::threadOutputs()
 
     if (lastActiveGame != title)
     {
+      if (serialPort != INVALID_HANDLE_VALUE)
+      {
+        Wiimote::SendComMessage("E");
+        CloseHandle(serialPort);
+        serialPort = INVALID_HANDLE_VALUE;
+      }
+
       lastActiveGame = title;
       lastRatio = 0;
       triggerIsActive = false;
@@ -234,6 +242,51 @@ void Wiimote::threadOutputs()
       activeRecoil = false;
       lastRatio = 0;
       if (title != "" && title != "00000000" && Config::Get(Config::SYSCONF_WIDESCREEN)) lastRatio = 1;
+
+      if (title != "" && title != "00000000"){
+        gun4irComPort = static_cast<int>(std::floor(m_ir->m_gun4ircom_setting.GetValue()));
+        bool validcom = false;
+        if (gun4irComPort > 0)
+        {
+          validcom = true;
+          std::string serialPortName = "COM" + std::to_string(gun4irComPort);
+          serialPort = CreateFileA(serialPortName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                                   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+          if (serialPort == INVALID_HANDLE_VALUE)
+          {
+            validcom = false;
+          }
+          if (validcom)
+          {
+            DCB dcbSerialParams = {0};
+            dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+
+            if (!GetCommState(serialPort, &dcbSerialParams))
+            {
+              validcom = false;
+            }
+            if (validcom)
+            {
+              dcbSerialParams.BaudRate = 9600;
+              dcbSerialParams.ByteSize = 8;
+              dcbSerialParams.StopBits = ONESTOPBIT;
+              dcbSerialParams.Parity = NOPARITY;
+            }
+            if (!SetCommState(serialPort, &dcbSerialParams))
+            {
+              validcom = false;
+            }
+          }
+        }
+        if (validcom)
+        {
+          Wiimote::SendComMessage("S6");
+        }
+        else
+        {
+          serialPort = INVALID_HANDLE_VALUE;
+        }
+}
     }
 
     if (!activeRecoil && triggerLastPress > 0)
@@ -1405,14 +1458,30 @@ void Wiimote::threadOutputs()
     if (output_signal != "")
     {
       NOTICE_LOG_FMT(ACHIEVEMENTS, "GUN {} : {}", m_index + 1, output_signal);
+      if (output_signal == "gunshot")
+      {
+        if (serialPort != INVALID_HANDLE_VALUE)
+        {
+          Wiimote::SendComMessage("F0x2x0x");
+        }
+      }
+
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   DEBUG_LOG_FMT(ACHIEVEMENTS, "THREAD {} : Thread fin", m_index);
+  if (serialPort != INVALID_HANDLE_VALUE)
+  {
+    Wiimote::SendComMessage("E");
+    CloseHandle(serialPort);
+    serialPort = INVALID_HANDLE_VALUE;
+  }
+
 }
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
+
   quitThread = false;
   myThread = new std::thread(&Wiimote::threadOutputs, this);
 
@@ -1517,6 +1586,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   m_options->AddSetting(&m_sideways_setting,
                         {SIDEWAYS_OPTION, nullptr, nullptr, _trans("Sideways Wii Remote")}, false);
 
+
+    
+
+
   Reset();
 
   m_config_changed_callback_id = Config::AddConfigChangedCallback([this] { RefreshConfig(); });
@@ -1531,6 +1604,16 @@ Wiimote::~Wiimote()
     myThread->join();
   }
   Config::RemoveConfigChangedCallback(m_config_changed_callback_id);
+}
+
+void Wiimote::SendComMessage(const std::string& message)
+{
+  if (serialPort != INVALID_HANDLE_VALUE)
+  {
+    DWORD bytesWritten;
+    DWORD messageLength = static_cast<DWORD>(message.length());
+    WriteFile(serialPort, message.c_str(), messageLength, &bytesWritten, NULL);
+  }
 }
 
 std::string Wiimote::GetName() const

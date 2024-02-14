@@ -20,6 +20,7 @@
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 #include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteEmu/Speaker.h"
+#include <windows.h>
 
 class PointerWrap;
 
@@ -152,9 +153,13 @@ public:
   int lastOther2 = 0;
   bool activeRecoil = false;
   bool fullAutoActive = false;
+  int gun4irComPort = 0;
+  HANDLE serialPort;
 
   explicit Wiimote(unsigned int index);
   ~Wiimote();
+
+  void SendComMessage(const std::string& message);
 
   std::string GetName() const override;
 

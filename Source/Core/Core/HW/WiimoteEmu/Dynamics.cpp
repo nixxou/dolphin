@@ -18,8 +18,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
 namespace
 {
 // Given a velocity, acceleration, and maximum jerk value,
@@ -236,8 +234,6 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   float yaw = ir_group->GetTotalYaw(-1);
   float pitch = ir_group->GetTotalPitch(-1);
 
-
-  NOTICE_LOG_FMT(ACHIEVEMENTS, "cursor {} {} {} RATIO={}", cursor.x, cursor.y, lastActiveGame, lastRatio);
 
   if (correctaim)
   {
