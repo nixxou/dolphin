@@ -21,6 +21,32 @@
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
+std::vector<std::string> liste_ids_recoil = {
+    "RCSQE0", "SC2E8P", "RZJE69", "SYNEGY", "WD6EBN", "WFAF5J", "RGSE8P", "SWE7WN", "WHEEYT", "WHFETY", "SH4EFP", "R8XE52", "RZPE01", "RQ5E5G", "SBHEFP", "SS7EFP",
+    "SBDE08", "RBUE08", "RGDEA4", "RCJE8P", "RHDE8P", "RHOE8P"};
+
+std::vector<std::string> liste_ids_aimfix = {
+    "S3AE5G", "RCSE20", "RCSP7J", "RMRE5Z", "RMRPNK", "RMRXNK", "SC2E8P", "RZJD69",
+    "RZJE69", "RZJJ13", "RZJP69", "SUNEYG", "SJUE20", "W6BE01", "WFAEJS", "RGSE8P",
+    "RGSJ8P", "RGSP8P", "SQDE8P", "SQDP8P", "SW7EVN", "WHYETY", "WHFETY", "SH4EFP",
+    "R8XE52", "RZPE01", "RQ5E5G", "RQ5P5G", "RQ5X5G", "RQ7E20", "RL6E69", "SKXE20",
+    "SKXPFH", "STDEFP", "SBHEFP", "SS7EFP", "SRKEFP", "SBSEFP", "SBDE08", "SBDJ08",
+    "SBDK08", "SBDP08", "RBUE08", "R2VE01", "R2VP01", "R2VJ01", "SSNEYG", "RGDEA4",
+    "RCJE8P", "RCJP8P", "RHDE8P", "RHDJ8P", "RHDP8P", "RHOE8P", "RHOJ8P", "RHOP8P",
+    "ST9E52", "R8XZ52", "SW9EVN", "WB4EGL", "SSRE20", "SSRPXT", "WZPERZ"
+};
+
+std::vector<std::string> liste_ids_crosshair = {
+    "R2VE01", "R8LE20", "R8XE52", "R8XZ52", "R74E20", "RBUE08", "RCSE20", "RGDEA4", "RGSE8P",
+    "RHAE01", "RHDE8P", "RHOE8P", "RL6E69", "RMRE5Z", "RQ5E5G", "RQ7E20", "RQPZ52", "RRBE41",
+    "RY2E41", "RZPE01", "S3AE5G", "SBDE08", "SBHEFP", "SBQE4Z", "SBSEFP", "SCREJH", "SH4EFP",
+    "SJUE20", "SKXE20", "SUNEYG", "SUVE52", "SW7EVN", "W6BE01", "WB4EGL", "WCREHW", "WFAEJS",
+    "WHFETY", "R2VE01", "RCJE8P", "RGDEA4", "RHDE8P", "RHOE8P", "RQ5E5G", "RQ7E20", "SBHEFP", "SBSEFP",
+    "SC2E8P", "SJUE20", "SRKEFP", "SS7EFP", "SSRE20", "ST9E52", "STDEFP", "SW7EVN", "SW9EVN",
+    "WFAEJS", "WHFETY", "WHYETY", "WZPERZ"
+};
+
+
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::AddGame);
@@ -119,6 +145,57 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
           pos += MAX_NUMBER_LENGTH;
         }
       }
+
+      std::string gameID = game.GetGameID();
+
+      // Vérification si l'ID donné est présent dans la liste
+      bool id_present = false;
+      for (const std::string& id : liste_ids_recoil)
+      {
+        if (id == gameID)
+        {
+          id_present = true;
+          break;
+        }
+      }
+      if (id_present)
+      {
+        std::string newName;
+        newName = name.toStdString() + " [Recoil]";
+        name = QString::fromUtf8(newName.c_str());
+      }
+      id_present = false;
+      for (const std::string& id : liste_ids_aimfix)
+      {
+        if (id == gameID)
+        {
+          id_present = true;
+          break;
+        }
+      }
+      if (id_present)
+      {
+        std::string newName;
+        newName = name.toStdString() + " [AimFix]";
+        name = QString::fromUtf8(newName.c_str());
+      }
+      id_present = false;
+      for (const std::string& id : liste_ids_crosshair)
+      {
+        if (id == gameID)
+        {
+          id_present = true;
+          break;
+        }
+      }
+      if (id_present)
+      {
+        std::string newName;
+        newName = name.toStdString() + " [Crosshair Removed]";
+        name = QString::fromUtf8(newName.c_str());
+      }
+
+
 
       return name;
     }
