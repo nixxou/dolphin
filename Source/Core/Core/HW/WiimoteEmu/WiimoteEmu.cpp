@@ -250,8 +250,13 @@ void Wiimote::threadOutputs()
         {
           validcom = true;
           std::string serialPortName = "COM" + std::to_string(gun4irComPort);
+          if (gun4irComPort >= 10)
+          {
+            serialPortName = "\\\\.\\COM" + std::to_string(gun4irComPort);
+          }
           serialPort = CreateFileA(serialPortName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL,
-                                   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+                                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
           if (serialPort == INVALID_HANDLE_VALUE)
           {
             validcom = false;
@@ -627,11 +632,10 @@ void Wiimote::threadOutputs()
     }
 
     //Ghost Squad (USA)
-    //Note : 1st player only
     if (title == "RGSE8P")
     {
       int ammoCount = 0;
-      int max_player = 1;
+      int max_player = 4;
 
       if (m_index <= max_player - 1)
       {
@@ -650,6 +654,60 @@ void Wiimote::threadOutputs()
           if (valid_query)
           {
             auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x4b));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+        if (m_index == 1)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x80507410);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x69b));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+        if (m_index == 2)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x80507410);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0xceb));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              ammoCount = blr_ammo->value;
+          }
+        }
+        if (m_index == 3)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x80507410);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x133B));
             if (!blr_ammo)
               valid_query = false;
             else
