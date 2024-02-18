@@ -96,6 +96,8 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoEvents.h"
 
+#include "MameHookerProxy.h"
+
 namespace Core
 {
 static bool s_wants_determinism;
@@ -292,6 +294,7 @@ void Stop()  // - Hammertime!
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
 #endif  // USE_RETRO_ACHIEVEMENTS
+  MameHookerProxy::GetInstance().CloseGame();
 
   s_is_stopping = true;
 

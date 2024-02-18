@@ -60,6 +60,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
+#include "MameHookerProxy.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -178,6 +179,11 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     m_title_name.clear();
     m_title_description.clear();
     return;
+  }
+
+  if (Config::Get(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS))
+  {
+    MameHookerProxy::GetInstance().StartGame(game_id);
   }
 
   const Core::TitleDatabase title_database;

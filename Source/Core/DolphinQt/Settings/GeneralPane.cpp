@@ -105,6 +105,8 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_override_region_settings, &QCheckBox::stateChanged, this,
           &GeneralPane::OnSaveConfig);
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_mamehooker, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
@@ -154,6 +156,9 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_auto_disc_change = new QCheckBox(tr("Change Discs Automatically"));
   basic_group_layout->addWidget(m_checkbox_auto_disc_change);
+
+  m_checkbox_mamehooker = new QCheckBox(tr("Enable MameHooker Outputs"));
+  basic_group_layout->addWidget(m_checkbox_mamehooker);
 
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
@@ -270,6 +275,8 @@ void GeneralPane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_OVERRIDE_REGION_SETTINGS));
   SignalBlocking(m_checkbox_auto_disc_change)
       ->setChecked(Config::Get(Config::MAIN_AUTO_DISC_CHANGE));
+  SignalBlocking(m_checkbox_mamehooker)
+      ->setChecked(Config::Get(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS));
 
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
@@ -361,6 +368,7 @@ void GeneralPane::OnSaveConfig()
   Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_REGION_SETTINGS,
                            m_checkbox_override_region_settings->isChecked());
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
+  Config::SetBase(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS, m_checkbox_mamehooker->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));

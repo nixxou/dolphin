@@ -54,7 +54,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/Config/SYSCONFSettings.h"
-
+#include "Core/AchievementManager.h"
+#include <Core/MameHookerProxy.h>
 
 namespace WiimoteEmu
 {
@@ -1522,6 +1523,7 @@ void Wiimote::threadOutputs()
         {
           Wiimote::SendComMessage("F0x2x0x");
         }
+        MameHookerProxy::GetInstance().Gunshot(m_index);
       }
 
     }
@@ -1825,6 +1827,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
     if (!triggerIsActive)
     {
       triggerIsActive = true;
+      MameHookerProxy::GetInstance().SendState("TriggerPress_P" + std::to_string(m_index + 1), 1);
       triggerLastPress = std::chrono::duration_cast<std::chrono::microseconds>(
                              std::chrono::steady_clock::now().time_since_epoch())
                              .count();
@@ -1836,6 +1839,7 @@ void Wiimote::BuildDesiredWiimoteState(DesiredWiimoteState* target_state,
     if (triggerIsActive)
     {
       triggerIsActive = false;
+      MameHookerProxy::GetInstance().SendState("TriggerPress_P" + std::to_string(m_index + 1), 0);
       triggerLastRelease = std::chrono::duration_cast<std::chrono::microseconds>(
                                std::chrono::steady_clock::now().time_since_epoch())
                                .count();
@@ -2181,6 +2185,7 @@ bool Wiimote::IsUpright() const
 
 void Wiimote::SetRumble(bool on)
 {
+  MameHookerProxy::GetInstance().SendState("Rumble_P" + std::to_string(m_index + 1), on ? 1 : 0);
   const auto lock = GetStateLock();
   m_rumble->controls.front()->control_ref->State(on);
 }

@@ -22,8 +22,10 @@
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
 std::vector<std::string> liste_ids_recoil = {
-    "RCSQE0", "SC2E8P", "RZJE69", "SYNEGY", "WD6EBN", "WFAF5J", "RGSE8P", "SWE7WN", "WHEEYT", "WHFETY", "SH4EFP", "R8XE52", "RZPE01", "RQ5E5G", "SBHEFP", "SS7EFP",
-    "SBDE08", "RBUE08", "RGDEA4", "RCJE8P", "RHDE8P", "RHOE8P"};
+    "S3AE5G", "RCSE20", "SC2E8P", "RZJE69", "SUNEYG", "W6BE01", "WFAEJS", "RGSE8P",
+    "SW7EVN", "WHYETY", "WHFETY", "SH4EFP", "R8XE52", "RZPE01", "RQ5E5G", "SBHEFP",
+    "SS7EFP", "SBDE08", "RBUE08", "RGDEA4", "RCJE8P", "RHDE8P", "RHOE8P"
+};
 
 std::vector<std::string> liste_ids_aimfix = {
     "S3AE5G", "RCSE20", "RCSP7J", "RMRE5Z", "RMRPNK", "RMRXNK", "SC2E8P", "RZJD69",

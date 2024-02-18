@@ -143,6 +143,7 @@
 // This #define within X11/X.h conflicts with our WiimoteSource enum.
 #undef None
 #endif
+#include "Core/MameHookerProxy.h"
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 void MainWindow::OnSignal()
@@ -260,6 +261,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters,
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().Init();
 #endif  // USE_RETRO_ACHIEVEMENTS
+  MameHookerProxy::GetInstance().Init();
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   auto* daemon = new SignalDaemon(this);
