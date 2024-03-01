@@ -197,6 +197,8 @@ int main(int argc, char* argv[])
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
 
+    std::string titleId = "";
+    bool alreadyCheckedAndFileInvalid = false;
     // ForceLoadSaveStateTen
     if (Config::Get(Config::MAIN_AUTOBOOT_SAVESTATE_TEN))
     {
@@ -206,7 +208,9 @@ int main(int argc, char* argv[])
         std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(paths[0]));
         if (volume != nullptr)
         {
-          std::string titleId = volume->GetGameID();
+          titleId = volume->GetGameID();
+          if (titleId == "")
+            alreadyCheckedAndFileInvalid = true;
           std::string SaveStatePath = File::GetUserPath(D_STATESAVES_IDX) + titleId + ".s10";
           if (File::Exists(SaveStatePath))
           {
@@ -214,8 +218,47 @@ int main(int argc, char* argv[])
             NOTICE_LOG_FMT(ACHIEVEMENTS, "AutoBoot SaveState 10 : {}", SaveStatePath);
           }
         }
+        else
+        {
+          alreadyCheckedAndFileInvalid = true;
+        }
       }
     }
+
+    // AutoReshade
+    if (!alreadyCheckedAndFileInvalid)
+    {
+      bool foundGameReshade = false;
+      std::string exePath = File::GetExeDirectory();
+      std::string ReshadeFile = exePath + "\\ReShade.ini";
+      std::string ReshadeDefault = exePath + "\\DefaultReshadePreset.ini";
+      if (File::Exists(ReshadeFile) && File::Exists(ReshadeDefault))
+      {
+        if (titleId == "")
+        {
+          std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(paths[0]));
+          if (volume != nullptr)
+          {
+            titleId = volume->GetGameID();
+          }
+        }
+        if (titleId != "")
+        {
+          std::string ReshadeGame = exePath + "\\" + titleId + ".ini ";
+          if (File::Exists(ReshadeGame))
+          {
+            WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeGame.c_str(), ReshadeFile.c_str());
+            foundGameReshade = true;
+          }
+        }
+        if (!foundGameReshade)
+        {
+          WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeDefault.c_str(), ReshadeFile.c_str());
+        }
+      }
+    }
+    
+
 
     boot = BootParameters::GenerateFromFile(
         paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));

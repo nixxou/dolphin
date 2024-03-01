@@ -1082,6 +1082,29 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
       }
     }
   }
+
+  // AutoReshade
+  if (game.GetGameID() != "")
+  {
+    std::string exePath = File::GetExeDirectory();
+    std::string ReshadeFile = exePath + "\\ReShade.ini";
+    std::string ReshadeDefault = exePath + "\\DefaultReshadePreset.ini";
+    if (File::Exists(ReshadeFile) && File::Exists(ReshadeDefault))
+    {
+
+      std::string ReshadeGame = exePath + "\\" + game.GetGameID() + ".ini ";
+      if (File::Exists(ReshadeGame))
+      {
+        WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeGame.c_str(),
+                                    ReshadeFile.c_str());
+      }
+      else
+      {
+        WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeDefault.c_str(),
+                                   ReshadeFile.c_str());
+      }
+    }
+  }
   
   StartGame(paths, std::move(boot_session_data));
 }
