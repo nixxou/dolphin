@@ -1067,7 +1067,11 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   std::vector<std::string> paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
+  NOTICE_LOG_FMT(ACHIEVEMENTS, "BOOT2");
 
+  boot_session_data->SetSavestateData(
+      "C:\\Users\\Mehdi\\source\\repos\\dolphin\\Binary\\x64\\User\\StateSaves\\RM2E69.s06",
+      DeleteSavestateAfterBoot::No);
   StartGame(paths, std::move(boot_session_data));
 }
 
@@ -1097,6 +1101,7 @@ void MainWindow::StartGame(const std::string& path, ScanForSecondDisc scan,
 void MainWindow::StartGame(const std::vector<std::string>& paths,
                            std::unique_ptr<BootSessionData> boot_session_data)
 {
+  NOTICE_LOG_FMT(ACHIEVEMENTS, "BOOT");
   StartGame(BootParameters::GenerateFromFile(
       paths, boot_session_data ? std::move(*boot_session_data) : BootSessionData()));
 }

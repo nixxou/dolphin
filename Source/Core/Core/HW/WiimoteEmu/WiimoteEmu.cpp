@@ -307,6 +307,11 @@ void Wiimote::threadOutputs()
     bool valid_query = false;
     std::string output_signal = "";
 
+    std::chrono::microseconds::rep timestamp =
+    std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch())
+        .count();
+
     // Not Compatible list :
     // Dino Strike
     // Cocoto Magic Circus
@@ -952,10 +957,6 @@ void Wiimote::threadOutputs()
     {
       int gunStatus = 0;
       int max_player = 1;
-      std::chrono::microseconds::rep timestamp =
-          std::chrono::duration_cast<std::chrono::microseconds>(
-              std::chrono::steady_clock::now().time_since_epoch())
-              .count();
 
       if (m_index <= max_player - 1)
       {
@@ -1035,10 +1036,6 @@ void Wiimote::threadOutputs()
       int cooldown = 0;
       float reload = 0;
       int max_player = 2;
-      std::chrono::microseconds::rep timestamp =
-          std::chrono::duration_cast<std::chrono::microseconds>(
-              std::chrono::steady_clock::now().time_since_epoch())
-              .count();
 
       if (m_index <= max_player - 1)
       {
@@ -1102,10 +1099,6 @@ void Wiimote::threadOutputs()
     {
       int cooldown = 0;
       int max_player = 2;
-      std::chrono::microseconds::rep timestamp =
-          std::chrono::duration_cast<std::chrono::microseconds>(
-              std::chrono::steady_clock::now().time_since_epoch())
-              .count();
 
       if (m_index <= max_player - 1)
       {
@@ -1339,10 +1332,7 @@ void Wiimote::threadOutputs()
         {
           if (ammoCountCharge < lastCharged)
           {
-            std::chrono::microseconds::rep timestamp =
-                std::chrono::duration_cast<std::chrono::microseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch())
-                    .count();
+
             long long diffrlz = timestamp - triggerLastRelease;
             if (diffrlz < max_time_lastPress)
             {
@@ -1435,6 +1425,7 @@ void Wiimote::threadOutputs()
             else
               ammoCount = blr_ammo->value;
           }
+          //NOTICE_LOG_FMT(ACHIEVEMENTS, "Ammo =  {} -> {}", ammoCount, ammoadress);
         }
 
         if (m_index == 1)
@@ -1454,10 +1445,8 @@ void Wiimote::threadOutputs()
             else
               ammoCount = blr_ammo->value;
           }
-          // NOTICE_LOG_FMT(ACHIEVEMENTS, "AMMO = {}", ammoCount);
         }
 
-        
         if (valid_query)
         {
           if (ammoCount < lastAmmo)
@@ -1470,50 +1459,376 @@ void Wiimote::threadOutputs()
           lastAmmo = ammoCount;
         }
 
-          /*
-        if (valid_query)
-        {
-          if (fullAutoActive && (!triggerIsActive || ammoCount == 0))
-          {
-            output_signal = "machinegun_off";
-            fullAutoActive = false;
-          }
-          else
-          {
-            if (ammoCount < lastAmmo)
-            {
-              long long diff = timestamp - triggerLastPress;
-
-              // NOTICE_LOG_FMT(ACHIEVEMENTS, "Diff =  {} -> {}", diff, (triggerLastPress -
-              // LastGunshotPress));
-
-              if (diff < max_time_lastPress)
-              {
-                output_signal = "gunshot";
-                LastGunshotPress = triggerLastPress;
-                triggerLastPress = 0;
-              }
-              else
-              {
-                diff = timestamp - LastGunshotPress;
-                NOTICE_LOG_FMT(ACHIEVEMENTS, "DIFFAUTO = {}", diff);
-                if (!fullAutoActive && (triggerLastPressNoReset - LastGunshotPress) == 0 &&
-                    LastGunshotPress > 0 && triggerIsActive && diff > 200000)
-                {
-                  fullAutoActive = true;
-                  output_signal = "machinegun_on";
-                }
-              }
-            }
-          }
-          lastAmmo = ammoCount;
-        }
-        */
       }
     }
 
+    // Big Buck Hunter Pro (USA)
+    if (title == "SBQE4Z")
+    {
+      int ammoCount = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8035fbd3);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          auto blr_ammo2 = PowerPC::MMU::HostTryReadU8(guard, 0x8035fc4f);
+          if (!blr_ammo2)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo2->value;
+
+        }
+        if (m_index == 1)
+        {
+          auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x8035fbd7);
+          if (!blr_ammo)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo->value;
+
+          auto blr_ammo2 = PowerPC::MMU::HostTryReadU8(guard, 0x8035fc4b);
+          if (!blr_ammo2)
+            valid_query = false;
+          else
+            ammoCount += blr_ammo2->value;
+        }
+      }
+      if (valid_query)
+      {
+        if (ammoCount > lastAmmo)
+        {
+          long long diffrlz = timestamp - triggerLastRelease;
+          if (triggerIsActive || diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastRelease = 0;
+          }
+        }
+        lastAmmo = ammoCount;
+      }
+    }
+
+    
+    // Rayman Raving Rabbids (USA) (Rev 2)
+    if (title == "RRBE41")
+    {
+      int outOfAmmo = 0;
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x806b59a4);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x21D));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              outOfAmmo = blr_ammo->value;
+          }
+        }
+        if (m_index == 1)
+        {
+          long ammoadress = 0;
+          auto blr_ammo_address = PowerPC::MMU::HostTryReadU32(guard, 0x806b59a4);
+          if (!blr_ammo_address)
+            valid_query = false;
+          else
+            ammoadress = blr_ammo_address->value;
+
+          if (valid_query)
+          {
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, (ammoadress + 0x225));
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              outOfAmmo = blr_ammo->value;
+          }
+        }
+      }
+      if (valid_query)
+      {
+        if (outOfAmmo == 0)
+        {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+        }
+      }
+    }
+    
+    //if (lastActiveGame == "RM2E69")  //Medal of Honor HERO 2 (usa)
+    if (title == "RM2E69")
+    {
+      int outOfAmmo = 0;
+      int max_player = 1;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+        Core::CPUThreadGuard guard(Core::System::GetInstance());
+
+        if (m_index == 0)
+        {
+
+            auto blr_ammo = PowerPC::MMU::HostTryReadU8(guard, 0x929338c8);
+            if (!blr_ammo)
+              valid_query = false;
+            else
+              outOfAmmo = blr_ammo->value;
+
+        }
+      }
+
+      if (fullAutoActive && (!triggerIsActive || outOfAmmo == 1))
+      {
+        output_signal = "machinegun_off";
+        fullAutoActive = false;
+      }
+
+      if (valid_query)
+      {
+        if (outOfAmmo == 0)
+        {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (triggerIsActive && !fullAutoActive && diffrlz < max_time_lastPress)
+          {
+            fullAutoActive = true;
+            triggerLastPress = 0;
+            output_signal = "machinegun_on:160";
+          }
+        }
+      }
+    }
+
+    //Failed Recoil List :
+
+    //GunBlade
+    if (title == "SQDE8P" || title == "SQDP8P")
+    {
+      int max_player = 4;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+      }
+      if (fullAutoActive && !triggerIsActive)
+      {
+        output_signal = "machinegun_off";
+        fullAutoActive = false;
+      }
+      if (triggerIsActive && !fullAutoActive)
+      {
+        fullAutoActive = true;
+        triggerLastPress = 0;
+        output_signal = "machinegun_on:160";
+      }
+    }
+
+    // Rayman Raving Rabbids 2 PAL
+    if (title == "RY2E41" || title == "RY2J41" || title == "RY2K41" || title == "RY2P41" || title == "RY2R41")
+    {
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+        valid_query = true;
+      }
+      if (valid_query)
+      {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+      }
+    }
+
+    //Rayman Raving Rabbids TV Party
+    if (title == "RY3E41" || title == "RY3J41" || title == "RY3K41" || title == "RY3P41")
+    {
+      int max_player = 2;
+
+      if (m_index <= max_player - 1)
+      {
+          valid_query = true;
+      }
+      if (valid_query)
+      {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+      }
+    }
+
+    //Cocoto Magic Circus
+    if (title == "RMRE5Z" || title == "RMRPNK" || title == "RMRXNK")
+    {
+      int max_player = 4;
+
+      if (m_index <= max_player - 1)
+      {
+          valid_query = true;
+      }
+      if (valid_query)
+      {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+      }
+    }
+
+    //Dino Strike
+    if (title == "SJUE20")
+    {
+      int max_player = 4;
+
+      if (m_index <= max_player - 1)
+      {
+          valid_query = true;
+      }
+      if (valid_query)
+      {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+      }
+    }
+
+    //Martian Panic
+    if (title == "RQ7E20")
+    {
+      int max_player = 4;
+
+      if (m_index <= max_player - 1)
+      {
+          valid_query = true;
+      }
+      if (valid_query)
+      {
+          long long diffrlz = timestamp - triggerLastPress;
+          if (diffrlz < max_time_lastPress)
+          {
+            output_signal = "gunshot";
+            triggerLastPress = 0;
+          }
+      }
+    }
+
+    bool doRecoil = false;
+    if (output_signal != "")
+    {
+      if (output_signal == "gunshot")
+      {
+          nextGunShot = 0;
+          fullAutoDelay = 0;
+          queueSizeGunshot = 0;
+          multishotDelay = 0;
+          doRecoil = true;
+      }
+      if (output_signal.starts_with("multishot:"))
+      {
+          size_t firstColonPos = output_signal.find(':');
+          size_t secondColonPos = output_signal.find(':', firstColonPos + 1);
+
+          std::string num1Str =
+              output_signal.substr(firstColonPos + 1, secondColonPos - firstColonPos - 1);
+          std::string num2Str = output_signal.substr(secondColonPos + 1);
+
+          int numberofshot = std::stoi(num1Str);
+          int delayshot = std::stoi(num2Str);
 
 
+          delayshot *= 1000;
+          nextGunShot = timestamp + delayshot;
+          fullAutoDelay = 0;
+          queueSizeGunshot = numberofshot - 1;
+          multishotDelay = delayshot;
+          doRecoil = true;
+      }
+      if (output_signal.starts_with("machinegun_on:"))
+      {
+          size_t colonPos = output_signal.find(':');
+          std::string valueStr = output_signal.substr(colonPos + 1);
+          int delayshot = std::stoi(valueStr);
+
+          delayshot *= 1000;
+          nextGunShot = timestamp + delayshot;
+          fullAutoDelay = delayshot;
+          queueSizeGunshot = 0;
+          delayshot = 0;
+          doRecoil = true;
+      }
+      if (output_signal == "machinegun_off")
+      {
+          nextGunShot = 0;
+          fullAutoDelay = 0;
+      }
+    }
+    else
+    {
+      if (queueSizeGunshot > 0 && timestamp > nextGunShot)
+      {
+          doRecoil = true;
+          queueSizeGunshot--;
+          if (queueSizeGunshot > 0)
+          {
+            nextGunShot = timestamp + multishotDelay;
+          }
+      }
+      if (fullAutoDelay > 0 && timestamp > nextGunShot)
+      {
+          doRecoil = true;
+          nextGunShot = timestamp + fullAutoDelay;
+      }
+    }
+
+    if (doRecoil)
+    {
+      lastGunShot = timestamp;
+      NOTICE_LOG_FMT(ACHIEVEMENTS, "GUN {} : {}", m_index + 1, output_signal);
+      if (serialPort != INVALID_HANDLE_VALUE)
+      {
+          Wiimote::SendComMessage("F0x2x0x");
+      }
+      MameHookerProxy::GetInstance().Gunshot(m_index);
+    }
+
+    /*
     if (output_signal != "")
     {
       NOTICE_LOG_FMT(ACHIEVEMENTS, "GUN {} : {}", m_index + 1, output_signal);
@@ -1527,6 +1842,7 @@ void Wiimote::threadOutputs()
       }
 
     }
+    */
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
@@ -1545,7 +1861,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(i
   quitThread = false;
   myThread = new std::thread(&Wiimote::threadOutputs, this);
 
-  DEBUG_LOG_FMT(ACHIEVEMENTS, "ICI Wiimote {} !!!!!!!!!!!!",index);
   using Translatability = ControllerEmu::Translatability;
 
   // Buttons

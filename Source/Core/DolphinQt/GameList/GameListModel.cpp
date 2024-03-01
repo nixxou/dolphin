@@ -24,7 +24,8 @@ const QSize GAMECUBE_BANNER_SIZE(96, 32);
 std::vector<std::string> liste_ids_recoil = {
     "S3AE5G", "RCSE20", "SC2E8P", "RZJE69", "SUNEYG", "W6BE01", "WFAEJS", "RGSE8P",
     "SW7EVN", "WHYETY", "WHFETY", "SH4EFP", "R8XE52", "RZPE01", "RQ5E5G", "SBHEFP",
-    "SS7EFP", "SBDE08", "RBUE08", "RGDEA4", "RCJE8P", "RHDE8P", "RHOE8P"
+    "SS7EFP", "SBDE08", "RBUE08", "RGDEA4", "RCJE8P", "RHDE8P", "RHOE8P", "SBQE4Z",
+    "RRBE41"
 };
 
 std::vector<std::string> liste_ids_aimfix = {
@@ -35,7 +36,8 @@ std::vector<std::string> liste_ids_aimfix = {
     "SKXPFH", "STDEFP", "SBHEFP", "SS7EFP", "SRKEFP", "SBSEFP", "SBDE08", "SBDJ08",
     "SBDK08", "SBDP08", "RBUE08", "R2VE01", "R2VP01", "R2VJ01", "SSNEYG", "RGDEA4",
     "RCJE8P", "RCJP8P", "RHDE8P", "RHDJ8P", "RHDP8P", "RHOE8P", "RHOJ8P", "RHOP8P",
-    "ST9E52", "R8XZ52", "SW9EVN", "WB4EGL", "SSRE20", "SSRPXT", "WZPERZ"
+    "ST9E52", "R8XZ52", "SW9EVN", "WB4EGL", "SSRE20", "SSRPXT", "WZPERZ", "SBQE4Z",
+    "RRBE41","RY2P41", "RY3E41","RM2E69"
 };
 
 std::vector<std::string> liste_ids_crosshair = {
@@ -45,7 +47,7 @@ std::vector<std::string> liste_ids_crosshair = {
     "SJUE20", "SKXE20", "SUNEYG", "SUVE52", "SW7EVN", "W6BE01", "WB4EGL", "WCREHW", "WFAEJS",
     "WHFETY", "R2VE01", "RCJE8P", "RGDEA4", "RHDE8P", "RHOE8P", "RQ5E5G", "RQ7E20", "SBHEFP", "SBSEFP",
     "SC2E8P", "SJUE20", "SRKEFP", "SS7EFP", "SSRE20", "ST9E52", "STDEFP", "SW7EVN", "SW9EVN",
-    "WFAEJS", "WHFETY", "WHYETY", "WZPERZ"
+    "WFAEJS", "WHFETY", "WHYETY", "WZPERZ", "RY3E41","RM2E69","RRBE41","RHOE8P"
 };
 
 

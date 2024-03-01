@@ -146,6 +146,12 @@ public:
   std::chrono::microseconds::rep triggerLastPressNoReset = 0;
   std::chrono::microseconds::rep LastGunshotPress = 0;
 
+  std::chrono::microseconds::rep lastGunShot = 0;
+  std::chrono::microseconds::rep nextGunShot = 0;
+  int queueSizeGunshot = 0;
+  long fullAutoDelay = 0;
+  long multishotDelay = 0;
+
   int lastAmmo = INT32_MAX;
   int lastWeapon = 0;
   int lastCharged = 0;

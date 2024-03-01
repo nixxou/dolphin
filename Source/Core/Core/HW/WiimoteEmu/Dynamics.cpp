@@ -967,6 +967,118 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
             cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
         }
       }
+      if (lastActiveGame == "SBQE4Z")  //Big Buck Hunter Pro
+      {
+        vertical_offset = ir_group->GetVerticalOffset(7.0);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(18.9);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+        /*
+        if (cursor.y < 0)
+          cursor.y -= 0.005 * abs(yori);
+        if (cursor.y > 0)
+          cursor.y += 0.005 * abs(yori);
+        */
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+      if (lastActiveGame == "RRBE41" || lastActiveGame == "RRBJ41" || lastActiveGame == "RRBP41")  // Rayman Raving Rabbids
+      {
+        vertical_offset = ir_group->GetVerticalOffset(-0.7);
+        yaw = ir_group->GetTotalYaw(35.0);
+        pitch = ir_group->GetTotalPitch(25.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y -= 0.04 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+
+
+
+          if (cursor.y > 0)
+            cursor.y = cursor.y + (0.05 * abs(yori) * abs(xori));
+          if (cursor.y < 0)
+            cursor.y = cursor.y - (0.05 * abs(yori) * abs(xori));
+        
+      }
+      if (lastActiveGame == "RY2P41")  //Rayman - Raving Rabbids 2 (Europe) (En,Fr,De,Es,It,Nl) (Rev 2)
+      {
+          vertical_offset = ir_group->GetVerticalOffset(15.0);
+          yaw = ir_group->GetTotalYaw(26.0);
+          pitch = ir_group->GetTotalPitch(19.0);
+
+          double xori = cursor.x;
+          double yori = cursor.y;
+          
+          if (yori < 0)
+          {
+            if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+            if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          }
+      }
+
+      if (lastActiveGame == "RY3E41" || lastActiveGame == "RY3J41" || lastActiveGame == "RY3K41" || lastActiveGame == "RY3P41")  // Rayman - TV PARTY
+      {
+          vertical_offset = ir_group->GetVerticalOffset(15.0);
+          yaw = ir_group->GetTotalYaw(26.0);
+          pitch = ir_group->GetTotalPitch(19.0);
+
+          double xori = cursor.x;
+          double yori = cursor.y;
+          
+          if (yori < 0)
+          {
+            if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+            if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          }
+      }
+
+      if (lastActiveGame == "RM2E69")  // Medal of Honor HERO 2 (usa)
+      {
+          vertical_offset = ir_group->GetVerticalOffset(0.0);
+          yaw = ir_group->GetTotalYaw(47.2);
+          pitch = ir_group->GetTotalPitch(26.5);
+
+          double xori = cursor.x;
+          double yori = cursor.y;
+
+          
+          if (cursor.x > 0)
+          cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+          cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          
+      }
+
 
     }
     if (lastRatio == 1)
@@ -1850,6 +1962,117 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
             cursor.x = cursor.x + (0.05 * abs(yori) * abs(xori));
         }
       }
+      if (lastActiveGame == "SBQE4Z")  // Big Buck Hunter Pro
+      {
+        vertical_offset = ir_group->GetVerticalOffset(7.0);
+        yaw = ir_group->GetTotalYaw(25.5);
+        pitch = ir_group->GetTotalPitch(18.9);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+      }
+
+      if (lastActiveGame == "RRBE41" || lastActiveGame == "RRBJ41" || lastActiveGame == "RRBP41")  // Rayman Raving Rabbids
+      {
+        vertical_offset = ir_group->GetVerticalOffset(-0.7);
+        yaw = ir_group->GetTotalYaw(35.0);
+        pitch = ir_group->GetTotalPitch(25.0);
+
+        double xori = cursor.x;
+        double yori = cursor.y;
+
+        if (cursor.y < 0)
+          cursor.y -= 0.04 * abs(yori);
+
+        if (yori < 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+        }
+
+        if (yori > 0)
+        {
+          if (cursor.x > 0)
+            cursor.x = cursor.x - (0.02 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+            cursor.x = cursor.x + (0.02 * abs(yori) * abs(xori));
+        }
+
+
+
+          if (cursor.y > 0)
+            cursor.y = cursor.y + (0.05 * abs(yori) * abs(xori));
+          if (cursor.y < 0)
+            cursor.y = cursor.y - (0.05 * abs(yori) * abs(xori));
+        
+      }
+
+      if (lastActiveGame == "RY2P41")  //Rayman - Raving Rabbids 2 (Europe) (En,Fr,De,Es,It,Nl) (Rev 2)
+      {
+          vertical_offset = ir_group->GetVerticalOffset(15.0);
+          yaw = ir_group->GetTotalYaw(26.0);
+          pitch = ir_group->GetTotalPitch(19.0);
+
+          double xori = cursor.x;
+          double yori = cursor.y;
+          
+          if (yori < 0)
+          {
+            if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+            if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          }
+      }
+
+      if (lastActiveGame == "RY3E41" || lastActiveGame == "RY3J41" || lastActiveGame == "RY3K41" || lastActiveGame == "RY3P41")  // Rayman - TV PARTY
+      {
+          vertical_offset = ir_group->GetVerticalOffset(15.0);
+          yaw = ir_group->GetTotalYaw(26.0);
+          pitch = ir_group->GetTotalPitch(19.0);
+
+          double xori = cursor.x;
+          double yori = cursor.y;
+          
+          if (yori < 0)
+          {
+            if (cursor.x > 0)
+            cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+            if (cursor.x < 0)
+            cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          }
+      }
+
+      if (lastActiveGame == "RM2E69")  //Medal of Honor HERO 2 (usa)
+      {
+          vertical_offset = ir_group->GetVerticalOffset(0.0);
+          yaw = ir_group->GetTotalYaw(36.0);
+          pitch = ir_group->GetTotalPitch(26.5);
+
+          
+          double xori = cursor.x;
+          double yori = cursor.y;
+          
+          if (cursor.x > 0)
+          cursor.x = cursor.x - (0.04 * abs(yori) * abs(xori));
+          if (cursor.x < 0)
+          cursor.x = cursor.x + (0.04 * abs(yori) * abs(xori));
+          
+          
+      }
+
+
+
     }
   }
 
