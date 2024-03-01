@@ -42,6 +42,8 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+#include "DiscIO/DirectoryBlob.h"
+
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
 {
@@ -194,6 +196,27 @@ int main(int argc, char* argv[])
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
+
+    // ForceLoadSaveStateTen
+    if (Config::Get(Config::MAIN_AUTOBOOT_SAVESTATE_TEN))
+    {
+      if (save_state_path.has_value() == false && paths.size() > 0 && File::Exists(paths[0]))
+      {
+        
+        std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(paths[0]));
+        if (volume != nullptr)
+        {
+          std::string titleId = volume->GetGameID();
+          std::string SaveStatePath = File::GetUserPath(D_STATESAVES_IDX) + titleId + ".s10";
+          if (File::Exists(SaveStatePath))
+          {
+            save_state_path = SaveStatePath;
+            NOTICE_LOG_FMT(ACHIEVEMENTS, "AutoBoot SaveState 10 : {}", SaveStatePath);
+          }
+        }
+      }
+    }
+
     boot = BootParameters::GenerateFromFile(
         paths, BootSessionData(save_state_path, DeleteSavestateAfterBoot::No));
     game_specified = true;

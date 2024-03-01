@@ -241,6 +241,7 @@ const Info<DiscIO::Region> MAIN_FALLBACK_REGION{{System::Main, "Core", "Fallback
                                                 GetDefaultRegion()};
 const Info<bool> MAIN_AUTO_DISC_CHANGE{{System::Main, "Core", "AutoDiscChange"}, false};
 const Info<bool> MAIN_ENABLE_MAMEHOOKER_OUTPUTS{{System::Main, "Core", "EnableMamehookerOutputs"}, false};
+const Info<bool> MAIN_AUTOBOOT_SAVESTATE_TEN{{System::Main, "Core", "AutobootSavestateTen"}, false};
 const Info<bool> MAIN_ALLOW_SD_WRITES{{System::Main, "Core", "WiiSDCardAllowWrites"}, true};
 const Info<bool> MAIN_ENABLE_SAVESTATES{{System::Main, "Core", "EnableSaveStates"}, false};
 const Info<bool> MAIN_REAL_WII_REMOTE_REPEAT_REPORTS{
