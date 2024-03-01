@@ -293,6 +293,7 @@ void Stop()  // - Hammertime!
 
 #ifdef USE_RETRO_ACHIEVEMENTS
   AchievementManager::GetInstance().CloseGame();
+  AchievementManager::GetInstance().SetDisabled(false);
 #endif  // USE_RETRO_ACHIEVEMENTS
   MameHookerProxy::GetInstance().CloseGame();
 
@@ -1019,7 +1020,7 @@ void UpdateWantDeterminism(bool initial)
 
     RunAsCPUThread([&] {
       s_wants_determinism = new_want_determinism;
-      const auto ios = IOS::HLE::GetIOS();
+      const auto ios = system.GetIOS();
       if (ios)
         ios->UpdateWantDeterminism(new_want_determinism);
 
