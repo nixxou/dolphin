@@ -45,6 +45,9 @@ private:
   QCheckBox* m_checkbox_override_region_settings;
   QCheckBox* m_checkbox_auto_disc_change;
   QCheckBox* m_checkbox_mamehooker;
+  QCheckBox* m_checkbox_autoboot_savestate_ten;
+  QCheckBox* m_checkbox_use_sinden_recoil;
+
 #ifdef USE_DISCORD_PRESENCE
   QCheckBox* m_checkbox_discord_presence;
 #endif

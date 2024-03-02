@@ -1068,11 +1068,44 @@ void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,
   std::vector<std::string> paths = {game.GetFilePath()};
   if (second_game != nullptr)
     paths.push_back(second_game->GetFilePath());
-  NOTICE_LOG_FMT(ACHIEVEMENTS, "BOOT2");
 
-  boot_session_data->SetSavestateData(
-      "C:\\Users\\Mehdi\\source\\repos\\dolphin\\Binary\\x64\\User\\StateSaves\\RM2E69.s06",
-      DeleteSavestateAfterBoot::No);
+  // ForceLoadSaveStateTen
+  if (Config::Get(Config::MAIN_AUTOBOOT_SAVESTATE_TEN))
+  {
+    if (boot_session_data->GetSavestatePath().has_value() == false)
+    {
+      std::string SaveStatePath = File::GetUserPath(D_STATESAVES_IDX) + game.GetGameID() + ".s10";
+      if (File::Exists(SaveStatePath))
+      {
+        NOTICE_LOG_FMT(ACHIEVEMENTS, "AutoBoot SaveState 10 : {}", SaveStatePath);
+        boot_session_data->SetSavestateData(SaveStatePath, DeleteSavestateAfterBoot::No);
+      }
+    }
+  }
+
+  // AutoReshade
+  if (game.GetGameID() != "")
+  {
+    std::string exePath = File::GetExeDirectory();
+    std::string ReshadeFile = exePath + "\\ReShade.ini";
+    std::string ReshadeDefault = exePath + "\\DefaultReshadePreset.ini";
+    if (File::Exists(ReshadeFile) && File::Exists(ReshadeDefault))
+    {
+
+      std::string ReshadeGame = exePath + "\\" + game.GetGameID() + ".ini ";
+      if (File::Exists(ReshadeGame))
+      {
+        WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeGame.c_str(),
+                                    ReshadeFile.c_str());
+      }
+      else
+      {
+        WritePrivateProfileStringA("GENERAL", "PresetPath", ReshadeDefault.c_str(),
+                                   ReshadeFile.c_str());
+      }
+    }
+  }
+  
   StartGame(paths, std::move(boot_session_data));
 }
 

@@ -182,6 +182,15 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
     return;
   }
 
+  if (Config::Get(Config::MAIN_USE_SINDEN_RECOIL))
+  {
+    MameHookerProxy::GetInstance().useSindenRecoil = true;
+  }
+  else
+  {
+    MameHookerProxy::GetInstance().useSindenRecoil = false;
+  }
+
   if (Config::Get(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS))
   {
     MameHookerProxy::GetInstance().StartGame(game_id);
