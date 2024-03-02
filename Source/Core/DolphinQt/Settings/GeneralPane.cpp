@@ -107,6 +107,7 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_auto_disc_change, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_mamehooker, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_autoboot_savestate_ten, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_use_sinden_recoil, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
@@ -163,6 +164,9 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_autoboot_savestate_ten = new QCheckBox(tr("AutoBoot SaveState 10"));
   basic_group_layout->addWidget(m_checkbox_autoboot_savestate_ten);
+
+  m_checkbox_use_sinden_recoil = new QCheckBox(tr("Use Sinden Recoil"));
+  basic_group_layout->addWidget(m_checkbox_use_sinden_recoil);
 
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
@@ -283,6 +287,8 @@ void GeneralPane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS));
   SignalBlocking(m_checkbox_autoboot_savestate_ten)
       ->setChecked(Config::Get(Config::MAIN_AUTOBOOT_SAVESTATE_TEN));
+  SignalBlocking(m_checkbox_use_sinden_recoil)
+      ->setChecked(Config::Get(Config::MAIN_USE_SINDEN_RECOIL));
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
       ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
@@ -375,6 +381,7 @@ void GeneralPane::OnSaveConfig()
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBase(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS, m_checkbox_mamehooker->isChecked());
   Config::SetBase(Config::MAIN_AUTOBOOT_SAVESTATE_TEN, m_checkbox_autoboot_savestate_ten->isChecked());
+  Config::SetBase(Config::MAIN_USE_SINDEN_RECOIL, m_checkbox_use_sinden_recoil->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
