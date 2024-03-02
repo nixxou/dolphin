@@ -138,6 +138,7 @@ public:
   std::thread* myThread = nullptr;
   bool quitThread = false;
 
+  bool fastPointer = false;
   std::string lastActiveGame = "";
   int lastRatio = 0;
   bool triggerIsActive = false;

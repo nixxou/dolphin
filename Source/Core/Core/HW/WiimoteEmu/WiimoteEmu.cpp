@@ -1857,7 +1857,7 @@ void Wiimote::threadOutputs()
 }
 Wiimote::Wiimote(const unsigned int index) : m_index(index), m_bt_device_index(index)
 {
-
+  fastPointer = Config::Get(Config::MAIN_USE_FAST_POINTER);
   quitThread = false;
   myThread = new std::thread(&Wiimote::threadOutputs, this);
 
@@ -2515,7 +2515,7 @@ void Wiimote::StepDynamics()
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulatePoint(&m_point_state, m_ir, m_input_override_function, 1.f / ::Wiimote::UPDATE_FREQ,
-               lastActiveGame, lastRatio);
+               lastActiveGame, lastRatio, fastPointer);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);

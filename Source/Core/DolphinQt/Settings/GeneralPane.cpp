@@ -108,7 +108,7 @@ void GeneralPane::ConnectLayout()
   connect(m_checkbox_mamehooker, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_autoboot_savestate_ten, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_use_sinden_recoil, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
-  
+  connect(m_checkbox_use_fast_pointer, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #ifdef USE_DISCORD_PRESENCE
   connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
 #endif
@@ -165,8 +165,11 @@ void GeneralPane::CreateBasic()
   m_checkbox_autoboot_savestate_ten = new QCheckBox(tr("AutoBoot SaveState 10"));
   basic_group_layout->addWidget(m_checkbox_autoboot_savestate_ten);
 
-  m_checkbox_use_sinden_recoil = new QCheckBox(tr("Use Sinden Recoil"));
+  m_checkbox_use_sinden_recoil = new QCheckBox(tr("Use Sinden Recoil (Need Special Sinden Soft)"));
   basic_group_layout->addWidget(m_checkbox_use_sinden_recoil);
+
+  m_checkbox_use_fast_pointer = new QCheckBox(tr("Use Fast Pointer for Lightgun Games (Experimental)"));
+  basic_group_layout->addWidget(m_checkbox_use_fast_pointer);
 
 #ifdef USE_DISCORD_PRESENCE
   m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
@@ -289,6 +292,8 @@ void GeneralPane::LoadConfig()
       ->setChecked(Config::Get(Config::MAIN_AUTOBOOT_SAVESTATE_TEN));
   SignalBlocking(m_checkbox_use_sinden_recoil)
       ->setChecked(Config::Get(Config::MAIN_USE_SINDEN_RECOIL));
+  SignalBlocking(m_checkbox_use_fast_pointer)
+      ->setChecked(Config::Get(Config::MAIN_USE_FAST_POINTER));
 #ifdef USE_DISCORD_PRESENCE
   SignalBlocking(m_checkbox_discord_presence)
       ->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
@@ -382,6 +387,7 @@ void GeneralPane::OnSaveConfig()
   Config::SetBase(Config::MAIN_ENABLE_MAMEHOOKER_OUTPUTS, m_checkbox_mamehooker->isChecked());
   Config::SetBase(Config::MAIN_AUTOBOOT_SAVESTATE_TEN, m_checkbox_autoboot_savestate_ten->isChecked());
   Config::SetBase(Config::MAIN_USE_SINDEN_RECOIL, m_checkbox_use_sinden_recoil->isChecked());
+  Config::SetBase(Config::MAIN_USE_FAST_POINTER, m_checkbox_use_fast_pointer->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));

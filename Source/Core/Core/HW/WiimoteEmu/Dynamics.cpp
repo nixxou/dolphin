@@ -224,7 +224,7 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
                   const ControllerEmu::InputOverrideFunction& override_func, float time_elapsed,
-                  std::string lastActiveGame, int lastRatio)
+                  std::string lastActiveGame, int lastRatio, bool fastPointer)
 {
 
   const bool correctaim = ir_group->m_autocorrectaim_setting.GetValue();
@@ -234,13 +234,14 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   float yaw = ir_group->GetTotalYaw(-1);
   float pitch = ir_group->GetTotalPitch(-1);
 
-
+  bool aim_corrected = false;
   if (correctaim)
   {
     if (lastRatio == 0)
     {
       if (lastActiveGame == "S3AE5G")  // Attack of the Movies 3D
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(25);
         pitch = ir_group->GetTotalPitch(19);
@@ -258,6 +259,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RCSE20" || lastActiveGame == "RCSP7J")  // Chicken Shoot
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(-0.2);
         yaw = ir_group->GetTotalYaw(61.5);
         pitch = ir_group->GetTotalPitch(32.0);
@@ -273,6 +275,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RMRE5Z" || lastActiveGame == "RMRPNK" ||
           lastActiveGame == "RMRXNK")  // Cocoto Magic Circu
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.3);
         yaw = ir_group->GetTotalYaw(25.2);
         pitch = ir_group->GetTotalPitch(18.7);
@@ -294,6 +297,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SC2E8P")  // Conduit 2
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.2);
         pitch = ir_group->GetTotalPitch(20.5);
@@ -333,6 +337,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RZJD69" || lastActiveGame == "RZJE69" || lastActiveGame == "RZJJ13" ||
           lastActiveGame == "RZJP69")  // DeadSpace
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(23.9);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -350,6 +355,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SUNEYG")  // DD Legends
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.0);
         pitch = ir_group->GetTotalPitch(14.5);
@@ -367,6 +373,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SJUE20")  // Dino Strike
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.3);
         pitch = ir_group->GetTotalPitch(18.9);
@@ -384,6 +391,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "W6BE01")  // Eco Shooter
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(0);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(20.5);
@@ -408,6 +416,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WFAEJS")  // Fast Draw Showdown
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(18.8);
@@ -426,6 +435,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RGSE8P" || lastActiveGame == "RGSJ8P" ||
           lastActiveGame == "RGSP8P")  // Ghost Squad
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.6);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -444,6 +454,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "SQDE8P" ||
           lastActiveGame == "SQDP8P")  // Gunblade NY & LA Machineguns: Arcade Hits Pack
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.3);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -461,6 +472,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SW7EVN")  // Gunslingers
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(15.8);
@@ -476,6 +488,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WHYETY")  // Heavy Fire - Black Arms
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(29.5);
         pitch = ir_group->GetTotalPitch(22);
@@ -492,6 +505,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WHFETY")  // Heavy Fire - Special Operations
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(29.5);
         pitch = ir_group->GetTotalPitch(22);
@@ -508,6 +522,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SH4EFP")  // Heavy Fire - Afghanistan (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25);
         pitch = ir_group->GetTotalPitch(19);
@@ -524,6 +539,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "R8XE52")  // Jurassic - The Hunted (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.8);
         pitch = ir_group->GetTotalPitch(19);
@@ -539,6 +555,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RZPE01")  // Link's Crossbow Training
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(18);
         pitch = ir_group->GetTotalPitch(10);
@@ -556,6 +573,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RQ5E5G" || lastActiveGame == "RQ5P5G" ||
           lastActiveGame == "RQ5X5G")  // Mad Dog McCree - Gunslinger Pack
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -572,6 +590,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RQ7E20")  // Martian Panic
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25);
         pitch = ir_group->GetTotalPitch(19);
@@ -587,6 +606,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RL6E69")  // Nerf N Strike
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(21.5);
         yaw = ir_group->GetTotalYaw(16);
         pitch = ir_group->GetTotalPitch(12.5);
@@ -602,6 +622,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SKXE20" || lastActiveGame == "SKXPFH")  // Pirate Blast
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -623,6 +644,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "STDEFP")  // Reload
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26);
         pitch = ir_group->GetTotalPitch(18.8);
@@ -640,6 +662,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBHEFP")  // Remington Great American Bird Hunt (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.3);
         pitch = ir_group->GetTotalPitch(18.8);
@@ -656,6 +679,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SS7EFP")  // Remington Super Slam Hunting - Africa (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26);
         pitch = ir_group->GetTotalPitch(19);
@@ -675,6 +699,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SRKEFP")  // Remington Super Slam Hunting - Alaska (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.3);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -694,6 +719,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBSEFP")  // Remington Super Slam Hunting - North America (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.3);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -712,6 +738,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "SBDE08" || lastActiveGame == "SBDJ08" || lastActiveGame == "SBDK08" ||
           lastActiveGame == "SBDP08")  // RESIDENT EVIL THE DARKSIDE CHRONICLES
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(0);
         yaw = ir_group->GetTotalYaw(21);
         pitch = ir_group->GetTotalPitch(15.8);
@@ -726,6 +753,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RBUE08")  // Resident Evil - The Umbrella Chronicles (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(17.3);
         pitch = ir_group->GetTotalPitch(11.7);
@@ -748,6 +776,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "R2VE01" || lastActiveGame == "R2VP01" ||
           lastActiveGame == "R2VJ01")  // Sin & Punishment - Star Successor (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25);
         pitch = ir_group->GetTotalPitch(19.2);
@@ -765,6 +794,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SSNEYG")  // Sniper Elite
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(24);
         pitch = ir_group->GetTotalPitch(13.5);
@@ -779,6 +809,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RGDEA4")  // Target: Terror
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.7);
         pitch = ir_group->GetTotalPitch(19.7);
@@ -805,6 +836,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RCJE8P" || lastActiveGame == "RCJP8P")  // The Conduit
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(18.7);
@@ -827,6 +859,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RHDE8P" || lastActiveGame == "RHDJ8P" ||
           lastActiveGame == "RHDP8P")  // The House of the Dead 2 & 3 Return
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.7);
         pitch = ir_group->GetTotalPitch(19);
@@ -849,6 +882,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RHOE8P" || lastActiveGame == "RHOJ8P" ||
           lastActiveGame == "RHOP8P")  // House Of The Dead: OVERKILL
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26);
         pitch = ir_group->GetTotalPitch(19);
@@ -871,6 +905,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "ST9E52")  // Top Shot Arcade (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(24.7);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -887,6 +922,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "R8XZ52")  // Top Shot Dino
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -904,6 +940,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SW9EVN")  // Wicked Monster Blast
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(24.3);
         pitch = ir_group->GetTotalPitch(23.7);
@@ -920,6 +957,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WB4EGL")  // Wild West Guns
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.7);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -936,6 +974,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SSRE20" || lastActiveGame == "SSRPXT")  // Wild West Shootout
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.3);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -952,6 +991,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WZPERZ")  // Zombie Panic
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.7);
         pitch = ir_group->GetTotalPitch(24.3);
@@ -969,6 +1009,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBQE4Z")  //Big Buck Hunter Pro
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(7.0);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(18.9);
@@ -992,6 +1033,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RRBE41" || lastActiveGame == "RRBJ41" || lastActiveGame == "RRBP41")  // Rayman Raving Rabbids
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(-0.7);
         yaw = ir_group->GetTotalYaw(35.0);
         pitch = ir_group->GetTotalPitch(25.0);
@@ -1028,6 +1070,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RY2P41")  //Rayman - Raving Rabbids 2 (Europe) (En,Fr,De,Es,It,Nl) (Rev 2)
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(15.0);
           yaw = ir_group->GetTotalYaw(26.0);
           pitch = ir_group->GetTotalPitch(19.0);
@@ -1046,6 +1089,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RY3E41" || lastActiveGame == "RY3J41" || lastActiveGame == "RY3K41" || lastActiveGame == "RY3P41")  // Rayman - TV PARTY
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(15.0);
           yaw = ir_group->GetTotalYaw(26.0);
           pitch = ir_group->GetTotalPitch(19.0);
@@ -1064,6 +1108,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RM2E69")  // Medal of Honor HERO 2 (usa)
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(0.0);
           yaw = ir_group->GetTotalYaw(47.2);
           pitch = ir_group->GetTotalPitch(26.5);
@@ -1086,6 +1131,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "S3AE5G")  // Attack of the Movies 3D
       {
+          aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19);
         pitch = ir_group->GetTotalPitch(19.8);
@@ -1116,6 +1162,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RCSE20" || lastActiveGame == "RCSP7J")  // Chicken Shoot
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(-0.2);
         yaw = ir_group->GetTotalYaw(61.5);
         pitch = ir_group->GetTotalPitch(32.0);
@@ -1131,6 +1178,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RMRE5Z" || lastActiveGame == "RMRPNK" ||
           lastActiveGame == "RMRXNK")  // Cocoto Magic Circu
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.3);
         yaw = ir_group->GetTotalYaw(25.2);
         pitch = ir_group->GetTotalPitch(18.7);
@@ -1152,6 +1200,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SC2E8P")  // Conduit 2
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19.2);
         pitch = ir_group->GetTotalPitch(21);
@@ -1193,6 +1242,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RZJD69" || lastActiveGame == "RZJE69" || lastActiveGame == "RZJJ13" ||
           lastActiveGame == "RZJP69")  // DeadSpace
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(18.3);
         pitch = ir_group->GetTotalPitch(19.5);
@@ -1212,6 +1262,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SUNEYG")  // DD Legends
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(14.0);
         pitch = ir_group->GetTotalPitch(11.0);
@@ -1239,7 +1290,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SJUE20")  // Dino Strike
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.0);
         yaw = ir_group->GetTotalYaw(14.3);
         pitch = ir_group->GetTotalPitch(19.5);
@@ -1260,7 +1311,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "W6BE01")  // Eco Shooter
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(0);
         yaw = ir_group->GetTotalYaw(20.5);
         pitch = ir_group->GetTotalPitch(21.2);
@@ -1286,7 +1337,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WFAEJS")  // Fast Draw Showdown
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(18.8);
@@ -1306,6 +1357,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RGSE8P" || lastActiveGame == "RGSJ8P" ||
           lastActiveGame == "RGSP8P")  // Ghost Squad
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.6);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -1324,7 +1376,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "SQDE8P" ||
           lastActiveGame == "SQDP8P")  // Gunblade NY & LA Machineguns: Arcade Hits Pack
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.2);
         yaw = ir_group->GetTotalYaw(15.3);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -1349,6 +1401,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SW7EVN")  // Gunslingers
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(14.25);
         pitch = ir_group->GetTotalPitch(12.0);
@@ -1375,6 +1428,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WHYETY")  // Heavy Fire - Black Arms
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.0);
         yaw = ir_group->GetTotalYaw(16.5);
         pitch = ir_group->GetTotalPitch(22.8);
@@ -1398,6 +1452,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WHFETY")  // Heavy Fire - Special Operations
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(16.5);
         pitch = ir_group->GetTotalPitch(23);
@@ -1420,6 +1475,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SH4EFP")  // Heavy Fire - Afghanistan (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.0);
         yaw = ir_group->GetTotalYaw(14.0);
         pitch = ir_group->GetTotalPitch(19.2);
@@ -1441,6 +1497,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "R8XE52")  // Jurassic - The Hunted (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(14.5);
         pitch = ir_group->GetTotalPitch(19);
@@ -1458,6 +1515,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RZPE01")  // Link's Crossbow Training
       {
+        aim_corrected = true;
         double xori = cursor.x;
         double yori = cursor.y;
         cursor.x *= 1.33;
@@ -1488,6 +1546,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RQ5E5G" || lastActiveGame == "RQ5P5G" ||
           lastActiveGame == "RQ5X5G")  // Mad Dog McCree - Gunslinger Pack
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -1504,6 +1563,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RQ7E20")  // Martian Panic
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(14.3);
         pitch = ir_group->GetTotalPitch(19.5);
@@ -1530,6 +1590,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RL6E69")  // Nerf N Strike
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(21.5);
         yaw = ir_group->GetTotalYaw(9.3);
         pitch = ir_group->GetTotalPitch(13.0);
@@ -1551,7 +1612,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SKXE20" || lastActiveGame == "SKXPFH")  // Pirate Blast
       {
-
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(27.5);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -1573,6 +1634,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "STDEFP")  // Reload
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15.0);
         yaw = ir_group->GetTotalYaw(14.5);
         pitch = ir_group->GetTotalPitch(18.8);
@@ -1594,7 +1656,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBHEFP")  // Remington Great American Bird Hunt (USA)
       {
-
+        aim_corrected = true;
         double xori = cursor.x;
         double yori = cursor.y;
         cursor.x *= 1.33;
@@ -1612,6 +1674,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SS7EFP")  // Remington Super Slam Hunting - Africa (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(18.7);
@@ -1631,6 +1694,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SRKEFP")  // Remington Super Slam Hunting - Alaska (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(19.5);
@@ -1657,6 +1721,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBSEFP")  // Remington Super Slam Hunting - North America (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(18.7);
         pitch = ir_group->GetTotalPitch(18.5);
@@ -1679,6 +1744,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "SBDE08" || lastActiveGame == "SBDJ08" || lastActiveGame == "SBDK08" ||
           lastActiveGame == "SBDP08")  // RESIDENT EVIL THE DARKSIDE CHRONICLES
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(0);
         yaw = ir_group->GetTotalYaw(21);
         pitch = ir_group->GetTotalPitch(15.8);
@@ -1693,6 +1759,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RBUE08")  // Resident Evil - The Umbrella Chronicles (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(17.3);
         pitch = ir_group->GetTotalPitch(11.7);
@@ -1720,6 +1787,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "R2VE01" || lastActiveGame == "R2VP01" ||
           lastActiveGame == "R2VJ01")  // Sin & Punishment - Star Successor (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(18.7);
         pitch = ir_group->GetTotalPitch(19.2);
@@ -1737,6 +1805,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SSNEYG")  // Sniper Elite
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19);
         pitch = ir_group->GetTotalPitch(14);
@@ -1753,6 +1822,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RGDEA4")  // Target: Terror
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.7);
         pitch = ir_group->GetTotalPitch(19.7);
@@ -1779,7 +1849,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "RCJE8P" || lastActiveGame == "RCJP8P")  // The Conduit
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(18.8);
         pitch = ir_group->GetTotalPitch(19);
@@ -1804,6 +1874,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RHDE8P" || lastActiveGame == "RHDJ8P" ||
           lastActiveGame == "RHDP8P")  // The House of the Dead 2 & 3 Return
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(14.9);
         yaw = ir_group->GetTotalYaw(26.7);
         pitch = ir_group->GetTotalPitch(19);
@@ -1826,7 +1897,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       if (lastActiveGame == "RHOE8P" || lastActiveGame == "RHOJ8P" ||
           lastActiveGame == "RHOP8P")  // House Of The Dead: OVERKILL
       {
-
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19.35);
         pitch = ir_group->GetTotalPitch(19);
@@ -1852,6 +1923,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "ST9E52")  // Top Shot Arcade (USA)
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(24.9);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -1869,7 +1941,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "R8XZ52")  // Top Shot Dino
       {
-        
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19.5);
         pitch = ir_group->GetTotalPitch(19.0);
@@ -1891,6 +1963,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SW9EVN")  // Wicked Monster Blast
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(18.3);
         pitch = ir_group->GetTotalPitch(18.7);
@@ -1910,6 +1983,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WB4EGL")  // Wild West Guns
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(18.95);
         pitch = ir_group->GetTotalPitch(19.5);
@@ -1929,6 +2003,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SSRE20" || lastActiveGame == "SSRPXT")  // Wild West Shootout
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19.25);
         pitch = ir_group->GetTotalPitch(19);
@@ -1945,6 +2020,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "WZPERZ")  // Zombie Panic
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(15);
         yaw = ir_group->GetTotalYaw(19);
         pitch = ir_group->GetTotalPitch(19.8);
@@ -1964,6 +2040,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
       }
       if (lastActiveGame == "SBQE4Z")  // Big Buck Hunter Pro
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(7.0);
         yaw = ir_group->GetTotalYaw(25.5);
         pitch = ir_group->GetTotalPitch(18.9);
@@ -1982,6 +2059,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RRBE41" || lastActiveGame == "RRBJ41" || lastActiveGame == "RRBP41")  // Rayman Raving Rabbids
       {
+        aim_corrected = true;
         vertical_offset = ir_group->GetVerticalOffset(-0.7);
         yaw = ir_group->GetTotalYaw(35.0);
         pitch = ir_group->GetTotalPitch(25.0);
@@ -2019,6 +2097,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RY2P41")  //Rayman - Raving Rabbids 2 (Europe) (En,Fr,De,Es,It,Nl) (Rev 2)
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(15.0);
           yaw = ir_group->GetTotalYaw(26.0);
           pitch = ir_group->GetTotalPitch(19.0);
@@ -2037,6 +2116,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RY3E41" || lastActiveGame == "RY3J41" || lastActiveGame == "RY3K41" || lastActiveGame == "RY3P41")  // Rayman - TV PARTY
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(15.0);
           yaw = ir_group->GetTotalYaw(26.0);
           pitch = ir_group->GetTotalPitch(19.0);
@@ -2055,6 +2135,7 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
 
       if (lastActiveGame == "RM2E69")  //Medal of Honor HERO 2 (usa)
       {
+          aim_corrected = true;
           vertical_offset = ir_group->GetVerticalOffset(0.0);
           yaw = ir_group->GetTotalYaw(36.0);
           pitch = ir_group->GetTotalPitch(26.5);
@@ -2115,9 +2196,17 @@ void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group,
   // Higher values will be more responsive but increase rate of M+ "desync".
   // I'd rather not expose this value in the UI if not needed.
   // At this value, sync is very good and responsiveness still appears instant.
-  constexpr auto MAX_ACCEL = float(MathUtil::TAU * 8);
+  if (fastPointer && aim_corrected)
+  {
+    constexpr auto MAX_ACCEL = float(MathUtil::TAU * 50);
+    ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
+  }
+  else
+  {
+    constexpr auto MAX_ACCEL = float(MathUtil::TAU * 8);
+    ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
+  }
 
-  ApproachAngleWithAccel(state, target_angle, MAX_ACCEL, time_elapsed);
 }
 
 void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_target,

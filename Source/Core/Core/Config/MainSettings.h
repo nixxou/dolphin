@@ -149,6 +149,7 @@ extern const Info<bool> MAIN_AUTO_DISC_CHANGE;
 extern const Info<bool> MAIN_ENABLE_MAMEHOOKER_OUTPUTS;
 extern const Info<bool> MAIN_AUTOBOOT_SAVESTATE_TEN;
 extern const Info<bool> MAIN_USE_SINDEN_RECOIL;
+extern const Info<bool> MAIN_USE_FAST_POINTER;
 extern const Info<bool> MAIN_ALLOW_SD_WRITES;
 extern const Info<bool> MAIN_ENABLE_SAVESTATES;
 extern const Info<DiscIO::Region> MAIN_FALLBACK_REGION;
